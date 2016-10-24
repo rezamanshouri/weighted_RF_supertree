@@ -1,0 +1,34 @@
+#!/usr/bin/python
+
+from ete3 import Tree
+import sys
+
+#open file named argv[1] and read trees from it
+f = open(sys.argv[1],"r")
+trees = f.readlines()
+f.close()
+
+
+t1 = Tree(trees[0])
+t2 = Tree(trees[1])
+
+#"print" command shows the tree structure in console
+#print t1
+#print t2
+
+common_leaves = set(t1.get_leaf_names()) &  set(t2.get_leaf_names())
+t1.prune(common_leaves)
+t2.prune(common_leaves)
+
+#print t1
+#print t2
+
+#the following command prints the newick format of the trees
+#print t1.write()
+#print t2.write()
+
+
+f = open('z_pruned_st_and_the_source_tree','w')
+f.write(t1.write() + '\n')
+f.write(t2.write() + '\n')
+f.close()
