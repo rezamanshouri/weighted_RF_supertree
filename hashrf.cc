@@ -1,177 +1,3 @@
-//*****************************************************************/
-/*
-		HashRF v.6.0.0
-
-		<<<<<<<<<<<<<< 2007.10.19 >>>>>>>>>>>>>>>
-
-		Fast algorithm to compute Robinson_Foulds topological distance between
-		phylogenetic trees based on universal hashing.
-
-	AUTHOR:
-		Copyright (C) 2006, 2007 Seung-Jin Sul
-			Dept. of Computer Science
-			Texas A&M University
-			U.S.A.
-		(contact: sulsj@cs.tamu.edu)
-		
-  LICENSE AGREEMENT
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details (www.gnu.org).
-
-	DESCRIPTION:
-		1. Read the first Newick tree and parsing it to tree data structure.
-		2. Collect taxon names.
-		3. Read all the trees and parsing them.
-		4. Collect bipartitions and hash them.
-		5. Compute RF distance.
-
-	HISTORY:
-		11/18/2006  Start to code new version
-		11/19/2006  To read tree file and to parse trees, libcov library is used
-		11/21/2006  Draw problem
-		11/22/2006  First tree read problem == libcov covIO::ReadTree()
-
-		11/30/2006  *CRITICAL MEM MGNT: dfs_traverse ==> delete bs
-
-
-		12/01/2006  Add the constants, HASHTABLE_FACTOR and C
-		12/02/2006  NUM_TREES and NUM_TAXA ==> make global for speedup
-		12/03/2006  Reimplement GetTaxaLabels() and dfs_traverse()
-		12/10/2006  Allocated memory clear
-
-		01/01/2007  v 2.0.0 Remove opt library.
-		01/02/2007  Remove STL Hash, jsut use my hash class
-
-		01/17/2007  v.3.0.1 11000 + 00111 = 11111 --> no need to hash
-					numBitstr --> count the number of bipartitions for each tree and
-					check the number is less than (n-3).
-
-		01/18/2007  delete tree one by one
-
-		01/20/2007  std random number generator ==>  Mersenne Twister random
-					number generator
-					(http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html)
-
-		02/01/2007  Print option #4 for ISMB07
-
-		02/08/2007  After hashing a bs, the stack_bs should be cleared.
-		02/08/2007  Reroot -> correct RF distance value
-
-		03/17/2007  Incorporate the methods from libcov
-		03/19/2007  Fix print option 1 & 2
-
-		03/19/2007  Add the 64-bit representation scheme of PGM to Fast Hash-RF.
-		03/19/2007  dfs_traverse_pgm() is implemented.
-
-		03/22/2007  Some data files could not be read in Hash-RF.
-		03/23/2007  Add myReadTree to covIO.cpp covIO.h
-					To use covTree* instead of vector<covTree*>
-					To debug corrupted double-linked list error
-
-		03/26/2007  Four types of operations
-					1. Without TYPE-III checking and n-bits representation  (Fast Hash-RF)
-					2. Without TYPE-III checking and 64-bits representation (PGM+Fast Hash-RF)
-					3. With    TYPE-III checking and n-bits representation  (Hash-RF)
-					4. With    TYPE-III checking and 64-bits representation (PGM+Hash-RF)
-
-
-		09.11.2007 Hash function init
-					64bit --> map_hashrf.uhashfunc_init(NUM_TREES, BITS, HASHTABLE_FACTOR, C);
-																												 ----
-
-		09.11.2007 Hash function
-					hv.hv1 += _a1[i]*ii;
-					hv.hv2 += _a2[i]*ii;
-					==>
-					hv.hv1 += _a1[i];
-					hv.hv2 += _a2[i];
-
-
-
-		09.07.2007  64-bit optimization ????????????????????????????????????
-					uint64_t ==> stack<uint64_t>
-					vec_bucket = iter_hashcs->second; and vec_bucket[i]
-					===> (iter_hashcs->second).size(); // remove copy
-
-
-
-		09.25.2007 Multifurcating -> dissimilarity matrix ==> RF matrix
-
-		10.18.2007 TCLAP argument processing
-
-
-
-		10.22.2007 RF matrix init
-					vector< vector<int> > DISSIM(NUM_TREES, vector<int>(NUM_TREES, NUM_TAXA-3));
-
-		10.27.2007 Wrong RF values in 64bit modes.
-					==> 64bit --> map_hashrf.uhashfunc_init(NUM_TREES, BITS, HASHTABLE_FACTOR, C);
-					==> DO NOT USE
-
-		10.30.2007 OPTIMIZATION
-					Simple vector
-					Implicit BP
-
-		10.31.2007
-					covTree <= DeleteAllNodes()
-					Remove stacking
-
-
-
-		11.12.2007 DEBUG
-					In hashfunc.cc --> top2 = c*t*n;
-
-
-		11.13.2007 data type
-					int --> unsigned
-					unsigned long
-
-		11.14.2007 DEBUG
-					DISSIM += ===> SIM -=
-
-		11.28.2007 OPTIMIZATION
-					Without bs.count_ones_zeros();
-					No checking for nontrivial bipartition for implicit bipartition
-
-		11.29.2007 OPTIMIZATION
-					double linked list to optimize distance matrix computation.
-
-
-		12.11.2007 Newick parser
-
-		12.17.2007 Unweighted + weighted
-
-
-		12.16.2008 Change matrix data type to unsigned short
-		
-		
-		1.20.2009 ULLONG_MAX check
-		
-		2.13.2009 PROBLEM with c value and error rate 
-		    due to abnormal behavior of MT random number generator
-		    fixed with RandomLib which is based on new MT random number generator
-		
-		2.17.2009 HashRF 6.0.0
-		
-		2.18.2009 remove bitset.hh bitset.cc
-		
-    4.14.2009 prepare distribution
-        SIM -> divide into SHORTMAT & FLAOTMAT
-        
-        
-		
-
- 
-
-*/
-/*****************************************************/
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -191,14 +17,18 @@
 
 #include <regex>
 #include <iterator>
+#include <set>
+#include <string>
 
 void split(const string &s, char delim, vector<string> &elems);
 vector<string> split(const string &s, char delim);
 set<string> find_non_common_taxa_set(const string &supertree, const string &source_tree);
-void restrict_supertree_to_source_tree(NEWICKNODE *node, const set<string> non_shared_taxa);
+//void restrict_supertree_to_source_tree(NEWICKNODE *node, const set<string> non_shared_taxa);
 string change_branch_lengths(const string &tree, int percentage_to_be_reweighted, int new_weight);
-
-
+void write_line_to_File(string s,const char* file_name);
+double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv);
+void restrict_st_to_source_tree();
+double calculate_total_wrf(const char* input_file);
 
 ////////////////////////REZA////////////////////////////////////////////<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ////////////////////////////////////////////////////////////////////        
@@ -239,17 +69,17 @@ static int32 NEWSEED											= 0; // for storing user specified seed value
 #define __MAX(type) ((type)~__MIN(type))
 
 #define assign(dest,src) ({ \
-  typeof(src) __x=(src); \
-  typeof(dest) __y=__x; \
+  decltype(src) __x=(src); \
+  decltype(dest) __y=__x; \
   (__x==__y && ((__x<1) == (__y<1)) ? (void)((dest)=__y),0:1); \
 })
 
 #define add_of(c,a,b) ({ \
-  typeof(a) __a=a; \
-  typeof(b) __b=b; \
+  decltype(a) __a=a; \
+  decltype(b) __b=b; \
   (__b)<1 ? \
-    ((__MIN(typeof(c))-(__b)<=(__a)) ? assign(c,__a+__b):1) : \
-    ((__MAX(typeof(c))-(__b)>=(__a)) ? assign(c,__a+__b):1); \
+    ((__MIN(decltype(c))-(__b)<=(__a)) ? assign(c,__a+__b):1) : \
+    ((__MAX(decltype(c))-(__b)>=(__a)) ? assign(c,__a+__b):1); \
 })
 
 void
@@ -457,13 +287,17 @@ print_rf_short_matrix(
   if (outfile != "")
     fout.close();
 }
-
-static void
+  
+//I change thid function to return distance instead of printting it
+//note I ALWAYS have exactly two trees: ST and one of source trees  
+static double
 print_rf_float_matrix(
 	vector< vector<float> > &SIM, 
 	unsigned options,
 	string outfile)
 {
+  double wrf_dist= 0.0;
+
 	ofstream fout;
 	if (outfile != "") {
 		fout.open(outfile.c_str());
@@ -471,7 +305,9 @@ print_rf_float_matrix(
 	
 	switch (options) {
 		case 0: 
-			return;   
+			//return;
+      return -1;
+      cout << "something went wrong" << endl;   
 		case 1: 
 			cout << "\nRobinson-Foulds distance (list format):\n";
 			
@@ -536,8 +372,11 @@ print_rf_float_matrix(
 			}
 			break;      
 		case 3:
-			cout << "\nRobinson-Foulds distance (matrix format):\n";
+			//cout << "\nRobinson-Foulds distance (matrix format):\n";
 			if (outfile == "") {
+         wrf_dist =  float((SIM[0][1] + SIM[0][1])/4);
+         return wrf_dist;
+        /*
 				for (unsigned i = 0; i < NUM_TREES; ++i)  {
 					for (unsigned j = 0; j < NUM_TREES; ++j)  {
 //	        for (unsigned j = i; j < NUM_TREES; ++j)  {
@@ -552,6 +391,7 @@ print_rf_float_matrix(
 					cout << endl;
 				}
 				cout << endl;
+        */
 			}
 			else {
 				for (unsigned i = 0; i < NUM_TREES; ++i)  {
@@ -575,8 +415,54 @@ print_rf_float_matrix(
 		fout.close();	
 }
 
-int main(int argc, char** argv)
+
+
+
+
+
+
+
+
+//////////////////////////////////////REZA///////////////////////////////main()
+//////////////////////////////////////////////////////>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+int main(int argc, char** argv) {
+	srand((unsigned)time(NULL));
+
+  //add weight 1 to all nternal edges: using perl replace all ")" with ""):1" except last one
+  const char* input_file_weighted = "z_input_file_weighted";
+  string argv1(argv[1]);
+  string command1 = "perl -pe 's/\\)/):1/g' " + argv1 + " > z_temp; cat z_temp > " + input_file_weighted + "; rm z_temp";
+  system(command1.c_str());
+  string command2 = "perl -pe 's/:1;/;/g' z_input_file_weighted > z_temp; cat z_temp> z_input_file_weighted; rm z_temp";
+  system(command2.c_str());
+  
+
+  double total_wrf_dist = calculate_total_wrf(argv[1]);
+  cout << total_wrf_dist << endl;
+
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//the following function was main() in original hashRF
+//i create fake argv for it in main
+double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
 {
+  double wrf_distance= 0.0;
+
   string outfilename;
   string infilename;
   bool bUbid = false; // for counting the number of unique bipartitions
@@ -660,7 +546,7 @@ int main(int argc, char** argv)
           ulLineCount++;
         }
       }
-      cout << "*** Number of trees in the input file: " << ulLineCount << endl;
+      //cout << "*** Number of trees in the input file: " << ulLineCount << endl;
       NUM_TREES = ulLineCount;
 
       infile.close();
@@ -699,78 +585,6 @@ int main(int argc, char** argv)
   }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
-  //REZA
-  /*****************************************************
-1- read first and second line of the input tree file (i.e. ST and one of source trees)
-2- call your function to find non-shared taxa
-3- traverse the ST tree data structure, you can use GetTaxaLabels(), to remove uncommon taxa AND removing nodes with 1 child
-4- copy this new (restricted) ST and source trees into a file which will be fed to the nexat call of loadnewicktree2()
-
-for randome selection of weights.....????
-1- on newick tree? ask on stackoverflow
-2- inside here ...like what you did in qsdt maybe?
-  *///****************************************************>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-/*
-  ifstream infile(argv[1]);
-  int two_trees= 1;
-  string supertree= "";
-  string first_source_tree= "";
-
-  while (infile.good() && two_trees < 3)
-  {
-  	two_trees ++;
-    string sLine;
-    getline(infile, sLine);
-    if(two_trees == 1) supertree= sLine;
-    if(two_trees == 2) first_source_tree = sLine;
-  }
-
-
-	set<string> non_shared_taxon_set= find_non_common_taxa_set(supertree, first_source_tree);
-*/
-
-
-
-
-
-
-//generate a file named "z_st_and_source_tree" containing ST and one of source trees
-
-
-
-	//the python program, "prune_tree.py", takes file "z_st_and_source_tree" containing ST and one source tree,
-	// and prunes ST to taxa set of source tree, AND adds branch lengths 1 to all edges in newick format, AND
-	//writes them into file "z_pruned_st_and_the_source_tree".
-	std::string command1 = "python prune_tree.py z_st_and_source_tree";
-	system(command1.c_str());
-	//there are some unnecessary branch lengths which should be removed:
-	//1- the branch lengths for interlan edges are like "..(t1,t2)1:1". Idk what is the first "1" for. I remove it.
-	string command2 = "perl -pe 's/(?<=\))1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
-	system(command2.c_str());
-	//2- having branch length for leaves in this context, i.e. weighted RF distance is unnecessary.
-	//thus, anything in newick format which is of the form "(some_taxon:1,...." should be removed. We keep only
-	//branch lengths after afer closing parenthesis.
-	string command3 = "perl -pe 's/(?<=[a-zA-Z0-9]):1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////////////REZA////////////////////////////////////////////////////////////<<<<<<<<<<<<<<<<<<<<<
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-
   /*****************************************************/
 //  cout << "*** Reading a tree file and parsing the tree for taxon label collection ***\n";
   /*****************************************************/
@@ -800,7 +614,7 @@ for randome selection of weights.....????
   }
 
   /*****************************************************/
-  cout << "\n*** Collecting the taxon labels ***\n";
+  //cout << "\n*** Collecting the taxon labels ***\n";
   /*****************************************************/
   LabelMap lm;
 
@@ -812,13 +626,13 @@ for randome selection of weights.....????
     exit(2);
   }
   NUM_TAXA = lm.size();
-  cout << "    Number of taxa = " << lm.size() << endl;
+  //cout << "    Number of taxa = " << lm.size() << endl;
   killnewicktree(newickTree);
   fclose(fp);
 
 
   /*****************************************************/
-  cout << "\n*** Reading tree file and collecting bipartitions ***\n";
+  //cout << "\n*** Reading tree file and collecting bipartitions ***\n";
   /*****************************************************/
   HashRFMap vvec_hashrf; // Class HashRFMap
 
@@ -867,12 +681,12 @@ for randome selection of weights.....????
     }
   }
 
-  cout << "    Number of trees = " << NUM_TREES << endl;
+  //cout << "    Number of trees = " << NUM_TREES << endl;
   fclose(fp);
 
 
   /*****************************************************/
-  cout << "\n*** Compute distance ***\n";
+  //cout << "\n*** Compute distance ***\n";
   /*****************************************************/
 //  vector< vector<unsigned short> > SIM(NUM_TREES, vector<unsigned short>(NUM_TREES, 0)); // similarity matrix
   typedef vector< vector<float> > FLOAT_MATRIX_T;
@@ -1005,12 +819,12 @@ for randome selection of weights.....????
     }
   }
 
-  cout << "    # of unique BIDs = " << uBID << endl;
+  //cout << "    # of unique BIDs = " << uBID << endl;
 
 	if (!WEIGHTED)
   	print_rf_short_matrix(SHORTSIM, PRINT_OPTIONS, outfilename);
   else 
-  	print_rf_float_matrix(FLOATSIM, PRINT_OPTIONS, outfilename);
+  	wrf_distance = print_rf_float_matrix(FLOATSIM, PRINT_OPTIONS, outfilename);
 
 
   /*****************************************************/
@@ -1019,8 +833,8 @@ for randome selection of weights.....????
   // CPU time comsumed
   struct rusage a;
   if (getrusage(RUSAGE_SELF,&a) == -1) { cerr << "Fatal error: getrusage failed.\n";  exit(2); }
-  cout << "\n    Total CPU time: " << a.ru_utime.tv_sec+a.ru_stime.tv_sec << " sec and ";
-  cout << a.ru_utime.tv_usec+a.ru_stime.tv_usec << " usec.\n";
+  //cout << "\n    Total CPU time: " << a.ru_utime.tv_sec+a.ru_stime.tv_sec << " sec and ";
+  //cout << a.ru_utime.tv_usec+a.ru_stime.tv_usec << " usec.\n";
  
 
   /*****************************************************/
@@ -1031,7 +845,7 @@ for randome selection of weights.....????
   vvec_hashrf.hashrfmap_clear();
 
 
-  return 1;
+  return wrf_distance;
 }
 
 
@@ -1044,107 +858,147 @@ for randome selection of weights.....????
 
 
 
-//////////////////////////////////////REZA////////////////////////////////////
+//////////////////////////////////////REZA////////////////////////////////////>>>>>>>>>>>>>
 //////////////////////////////////////////////////////////////////////////////>>>>>>>>>>>>>
-set<string> find_non_common_taxa_set(const string &supertree, const string &source_tree){
-	set<string> supertree_taxon_set;
-	set<string> source_tree_taxon_set;
-	set<string> non_shared_taxon_set;
- 
-	//get taxon set of source tree
-	regex reg("[^\\w]+");
-	string temp1 = regex_replace(source_tree, reg, " ");	//replacing all parenthesis, comma, and semi-colon with white space
-	temp1 = regex_replace(temp1, regex("^ +| +$|( ) +"), "$1");	//removing leading, trailing and extra spaces
-	vector<string> source_tree_taxon_vector= split(temp1, ' ');
-	for(auto i : source_tree_taxon_vector) {
-    	source_tree_taxon_set.insert(i);
-	}
-
-
-	//get taxon set of supertree
-	string temp2 = regex_replace(supertree, reg, " ");	//replacing all parenthesis, comma, and semi-colon with white space
-	temp2 = regex_replace(temp2, regex("^ +| +$|( ) +"), "$1");	//removing leading, trailing and extra spaces
-	vector<string> supertree_taxon_vector= split(temp2, ' ');
-	for(auto i : supertree_taxon_vector) {
-    	supertree_taxon_set.insert(i);
-	}
-
-	//find set difference
-	set_difference( supertree_taxon_set.begin(), supertree_taxon_set.end(), source_tree_taxon_set.begin(), source_tree_taxon_set.end(), inserter(non_shared_taxon_set, non_shared_taxon_set.begin()));
-
-	//for symmetric difference you can use the following
-	//set_symmetric_difference( supertree_taxon_set.begin(), supertree_taxon_set.end(), source_tree_taxon_set.begin(), source_tree_taxon_set.end(), inserter(non_shared_taxon_set, non_shared_taxon_set.begin()));
-
-	return non_shared_taxon_set;
-}
 
 
 
-void split(const string &s, char delim, vector<string> &elems) {
-    stringstream ss;
-    ss.str(s);
-    string item;
-    while (getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-}
 
-
-vector<string> split(const string &s, char delim) {
-    vector<string> elems;
-    split(s, delim, elems);
-    return elems;
-}
-
-
-void restrict_supertree_to_source_tree(NEWICKNODE *node, const set<string> non_shared_taxa){
-	bool taxon_found = false;
-	for(auto taxon : non_shared_taxa) {
-		if (node->Nchildren == 0) {
-	    	string temp(node->label);
-	    	if(temp == taxon)
-	  	}
-	  	else {
-	    	for (int i=0;i<node->Nchildren;++i){
-	      		GetTaxaLabels(node->child[i], lm);
-	      	}
-	    }  			
-	}
-
-}
-
-void remove_taxon_from_tree(NEWICKNODE *node, string taxon) {
-	if (node->Nchildren == 0) {
-    	string temp(node->label);
-    	if(temp == taxon) {	//remove this node from tree and adjust it: i.e. check if parent has only one childe, remove parent, makesibling, another child of grandfather
-
-    	}
-  	}
-  	else {
-    	for (int i=0;i<node->Nchildren;++i){
-      		remove_taxon_from_tree(node->child[i], lm);
-      	}
-    }	
-}
-
-//this function changes "percentage_to_be_reweighted"% of weights to "new_weight". This is done by
+//this function changes "percentage_to_be_reweighted"%, between 0 and 100, of weights to "new_weight". This is done by
 //iterating through each weight usin regex, and based on some probability change it to "new_weight"
+//NOTE: weiht should be one digit!!!
 string change_branch_lengths(const string &tree, int percentage_to_be_reweighted, int new_weight){
     string re_weighted_tree = tree;
-    regex weight_reg(:1); //I know weights are 1 from my python script
-    					// also make sure that you feed this function trees outputed from
-    					//original python script not the ones with changed weights!!
+    char weight_char = '0'+new_weight;    //"i +'0'" is for conversion of one digit to char
+                                          //NOTE: weiht should be one digit!!! 
 
-    for(std::sregex_iterator i = std::sregex_iterator(re_weighted_tree.begin(), re_weighted_tree.end(), weight_reg);
-                        i != std::sregex_iterator();
-                        ++i ){
-    	
+    //find the location of weights, i.e. "1"s in "..):1", in newick format
+    char befor_weight= ':';
+    vector<int> weight_locations;
+    for(int i =0; i < tree.size(); i++)
+        if(tree[i] == befor_weight){
+            weight_locations.push_back(i+1);
+        }    
+
+    //randomly select "percentage_to_be_reweighted"% of weights. We will reweight them to "new_weight"
+    //here is how I do this:
+    //1- create an array "arr" in which element i contains i
+    //2- shuffle elements
+    //3- give the first m elements weight "new_weight", where m = "percentage_to_be_reweighted"
+
+    //step 1
+    int num_internal_edges = weight_locations.size();
+    int arr[weight_locations.size()];
+    for(int i = 0; i < num_internal_edges; ++i){
+        arr[i] = i;
     }
+    
+    //step 2    
+    random_shuffle(arr, arr + num_internal_edges);
+
+    //find m in step 3
+    int num_of_edges_to_be_reweighted= (num_internal_edges*percentage_to_be_reweighted)/100;
+    
+    //step 3
+    for(int i = 0; i < num_of_edges_to_be_reweighted; i++){
+        re_weighted_tree[weight_locations[arr[i]]]= weight_char;
+    }
+
+    return re_weighted_tree;
+
 }
 
 
 
+//writes "s\n" into file "file_name"
+void write_line_to_File(string s,const char* file_name) {
 
+    ofstream myFile;
+    myFile.open(file_name, std::ios_base::app);
+    myFile << s + ";\n";
+    myFile.close();
+
+}
+
+
+//given ST and one source tree in input_file, writes "restricted" ST and source tree in file output_file
+//assumes ST and source tree are given in file "z_st_and_source_tree" and writes 'restricted' ST and source tree on "z_pruned_st_and_the_source_tree"
+//too hard wired, I know. I need it just to work now :))
+void restrict_st_to_source_tree() {
+/*
+For now I am using my python script and terminall commands using system calls, but in the future 
+you can implemet it like:
+1- read first and second line of the input tree file (i.e. ST and one of source trees)
+2- call your function to find non-shared taxa
+3- traverse the ST tree data structure, you can use GetTaxaLabels(), to remove uncommon taxa AND removing nodes with 1 child
+4- copy this new (restricted) ST and source trees into a file which will be fed to the nexat call of loadnewicktree2()
+*/
+
+
+	//the python program, "prune_tree.py", takes file "z_st_and_source_tree" containing ST and one source tree,
+	// and prunes ST to taxa set of source tree, AND adds branch lengths 1 to all edges in newick format, AND
+	//writes them into file "z_pruned_st_and_the_source_tree".
+	std::string command1 = "python prune_tree.py z_st_and_source_tree";
+	system(command1.c_str());
+	//there are some unnecessary branch lengths which should be removed:
+	//1- the branch lengths for interlan edges are like "..(t1,t2)1:1". Idk what is the first "1" for. I remove it.
+	string command2 = "perl -pe 's/(?<=\\))1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
+	system(command2.c_str());
+	//2- having branch length for leaves in this context, i.e. weighted RF distance is unnecessary.
+	//thus, anything in newick format which is of the form "(some_taxon:1,...." should be removed. We keep only
+	//branch lengths after afer closing parenthesis.
+	string command3 = "perl -pe 's/(?<=[a-zA-Z0-9]):1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
+  system(command3.c_str());
+}
+
+
+//assumes "input_file" contains ST (FIRST line) and all source trees
+double calculate_total_wrf(const char* input_file){
+  
+  double total_wrf_dist = 0.0;
+
+  //fake argv and argc to be passed to calculate_wrf_btwn_ST_n_source_tree()
+  //note here is how hashrf is called when we have exactly two tree: "hashrf z_pruned_st_and_the_source_tree 2 -w"
+  //Thus:
+  int fake_argc = 4;
+  char* fake_argv[4];
+  fake_argv[0] = "hashrf";
+  fake_argv[1] = "z_pruned_st_and_the_source_tree";
+  fake_argv[2] = "2";
+  fake_argv[3] = "-w";
+
+  string supertree;  
+  string tree;
+  int counter = 1;
+  ifstream input;
+  input.open (input_file);
+  while (getline(input, tree)) {
+    if(counter == 1) {  //ST is first tree
+      supertree = tree+"\n";   
+      counter++;
+    }else {
+      string current_tree= tree+"\n";
+      ofstream temp_file;
+      temp_file.open ("z_st_and_source_tree");
+      temp_file << supertree;
+      temp_file << current_tree;
+      temp_file.close();
+      
+      //assumes ST and source tree are given in file "z_st_and_source_tree" and writes
+      //'restricted' ST and source tree on "z_pruned_st_and_the_source_tree"
+      restrict_st_to_source_tree();
+
+      double dist= calculate_wrf_btwn_ST_n_source_tree(fake_argc, fake_argv);
+      //cout << dist << endl;
+      total_wrf_dist += dist;
+
+    }  
+  }
+  input.close();
+
+  return total_wrf_dist;
+
+}
 
 
 
