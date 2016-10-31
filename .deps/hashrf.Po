@@ -227,7 +227,18 @@ hashrf.o: hashrf.cc /usr/include/stdc-predef.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/regex_compiler.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/regex_grep_matcher.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/regex_grep_matcher.tcc \
- /home/reza/anaconda_ete/gcc/include/c++/bits/regex.h newick.h
+ /home/reza/anaconda_ete/gcc/include/c++/bits/regex.h \
+ /home/reza/anaconda_ete/gcc/include/c++/cstring /usr/include/string.h \
+ /home/reza/anaconda_ete/gcc/include/c++/climits \
+ /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include-fixed/limits.h \
+ /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+ /usr/include/linux/limits.h \
+ /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/xopen_lim.h rspr.h Forest.h Node.h \
+ LCA.h ClusterForest.h ClusterInstance.h SiblingPair.h UndoMachine.h \
+ lgt.h sparse_counts.h node_glom.h newick.h
 
 /usr/include/stdc-predef.h:
 
@@ -760,5 +771,49 @@ tclap/ValuesConstraint.h:
 /home/reza/anaconda_ete/gcc/include/c++/bits/regex_grep_matcher.tcc:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/regex.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/cstring:
+
+/usr/include/string.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/climits:
+
+/home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include-fixed/limits.h:
+
+/home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include-fixed/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
+
+rspr.h:
+
+Forest.h:
+
+Node.h:
+
+LCA.h:
+
+ClusterForest.h:
+
+ClusterInstance.h:
+
+SiblingPair.h:
+
+UndoMachine.h:
+
+lgt.h:
+
+sparse_counts.h:
+
+node_glom.h:
 
 newick.h:

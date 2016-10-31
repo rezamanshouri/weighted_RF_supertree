@@ -30,6 +30,42 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv);
 void restrict_st_to_source_tree();
 double calculate_total_wrf(const char* input_file);
 
+
+//************ADDED FOR SPR neihborhood************>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+//#include <string>
+#include <cstring>
+//#include <iostream>
+//#include <fstream>
+#include <sstream>
+#include <climits>
+#include <vector>
+#include <map>
+#include <utility>
+#include <algorithm>
+#include <list>
+#include <time.h>
+#include "rspr.h"
+
+#include "Forest.h"
+#include "ClusterForest.h"
+#include "LCA.h"
+#include "ClusterInstance.h"
+#include "UndoMachine.h"
+#include "lgt.h"
+#include "sparse_counts.h"
+#include "node_glom.h"
+
+
+#include <regex>
+void writeToFile(string s,const char* file_name);
+void adjustTree(Node* tree);
+int produce_all_spr_neighbors(Node* tree, int number_of_taxa);
+int number_of_taxa(string const tree);
+void total_number_of_nodes(Node* node, int& total_nodes);
+
 ////////////////////////REZA////////////////////////////////////////////<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ////////////////////////////////////////////////////////////////////        
 
@@ -426,20 +462,166 @@ print_rf_float_matrix(
 //////////////////////////////////////REZA///////////////////////////////main()
 //////////////////////////////////////////////////////>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 int main(int argc, char** argv) {
-	srand((unsigned)time(NULL));
+  srand((unsigned)time(NULL));
 
-  //add weight 1 to all nternal edges: using perl replace all ")" with ""):1" except last one
-  const char* input_file_weighted = "z_input_file_weighted";
+  /*
+  //add weight 1 to all nternal edges: using perl replace all ")" with ""):1" except last one i.e. "):1;"
   string argv1(argv[1]);
-  string command1 = "perl -pe 's/\\)/):1/g' " + argv1 + " > z_temp; cat z_temp > " + input_file_weighted + "; rm z_temp";
+  string command1 = "perl -pe 's/\\)/):1/g' " + argv1 + " > z_temp; cat z_temp > " + argv1 + "; rm z_temp";
   system(command1.c_str());
-  string command2 = "perl -pe 's/:1;/;/g' z_input_file_weighted > z_temp; cat z_temp> z_input_file_weighted; rm z_temp";
+  string command2 = "perl -pe 's/:1;/;/g' " + argv1 + " > z_temp; cat z_temp> " + argv1 + "; rm z_temp";
   system(command2.c_str());
-  
+  //now on inital_supertree file  
+  command1 = "perl -pe 's/\\)/):1/g' initial_supertree > z_temp; cat z_temp > initial_supertree; rm z_temp";
+  system(command1.c_str());  
+  command2 = "perl -pe 's/:1;/;/g' initial_supertree > z_temp; cat z_temp> initial_supertree; rm z_temp";
+  system(command2.c_str());
+  */
 
-  double total_wrf_dist = calculate_total_wrf(argv[1]);
-  cout << total_wrf_dist << endl;
 
+  cout << "Please enter the max number of iterations: " << endl;
+  //pre-specified number of iterations if it didn't stop after this number of iterations
+  int max_number_of_iterationds;
+  cin >> max_number_of_iterationds;
+
+
+  string init_supertree;
+  ifstream init_sup("initial_supertree");
+  if (init_sup.good())
+  {
+      string sLine;
+      getline(init_sup, sLine);
+      init_supertree= sLine;
+  }else{
+      cout << "Initial supertree file not found!!" << endl;
+      return -1;
+  }
+
+
+  string the_best_supertree = init_supertree;
+  int the_best_wrf_distance = INT_MAX;
+
+  double total_time= 0;
+
+
+  int iteration= 0;
+
+  //main loop
+  while (iteration < max_number_of_iterationds) {
+      iteration ++;
+
+      clock_t start_time,finish_time;
+      start_time= clock();
+
+
+
+      Node* myTree= build_tree(init_supertree);
+      adjustTree(myTree);
+
+      int total_nodes=0;
+      total_number_of_nodes(myTree, total_nodes);
+
+
+
+      //write init_supertree into "z_spr_neighbours"
+      const char* neighbors_file = "z_spr_neighbours";
+      writeToFile(init_supertree, neighbors_file);
+
+
+      //writes all valid spr_neighbors into the file "z_spr_neighbours"
+      int number_of_neighbors= produce_all_spr_neighbors(myTree, total_nodes);
+
+
+
+      double best_distance_of_current_iter= INT_MAX;
+      string best_supertree_of_current_iter;
+
+
+      string suptree;
+
+      ifstream supertrees;
+      supertrees.open ("z_spr_neighbours");
+
+      //This while goes through all the ST's in the
+      // "z_spr_neighbours" file.
+      while (getline(supertrees, suptree)) {
+
+          //replace "suptree" with the ST at the beginning of the "z_wrf_input"
+              //This is done in 3 steps:
+              // 1- creating a new file, "z_wrf_input", in each iteration of the while-loop
+              // 2- adding the "suptree" string variable at the beginning of "z_wrf_input"
+              // 3- concatenating the source_trees' file to "z_wrf_input"
+
+          const char* source_trees_file_name= argv[1]; //the first command line argument
+          std::ofstream wrf_file;
+          wrf_file.open ("z_wrf_input");
+          string current_supertree= suptree+"\n";
+          wrf_file << current_supertree;
+
+          ifstream source_trees(source_trees_file_name);
+          wrf_file << source_trees.rdbuf();
+          source_trees.close();
+
+          wrf_file.close();
+
+
+          //the following line computes the wrf dist. of ST to source trees
+          double current_supertree_wrf_distance = calculate_total_wrf("z_wrf_input");
+          cout << current_supertree_wrf_distance << endl;
+
+          ///cout << suptree << "  with score: " << current_supertree_wrf_distance << endl;
+          if(current_supertree_wrf_distance < best_distance_of_current_iter) {
+              best_distance_of_current_iter= current_supertree_wrf_distance;
+              best_supertree_of_current_iter= suptree;
+          }
+
+
+      }
+      supertrees.close();
+
+
+      cout << "****************************************************" << endl;
+      cout << "The bets ST found at the end of " << iteration << "th iteration and among "<<
+          number_of_neighbors << " spr-neighbors is" <<endl;
+      cout << best_supertree_of_current_iter << endl;
+      cout << "And its WRF distance is: " << best_distance_of_current_iter << endl;
+
+
+      finish_time=clock();
+      float diff ((float)finish_time - (float)start_time);
+      float seconds= diff / CLOCKS_PER_SEC;
+      total_time += seconds;
+      //cout << "The #of clock ticks of this iteration: " << diff << endl;
+      cout << "running time of this iteration, in seconds: " << seconds << endl;
+
+      cout << "****************************************************" << endl;
+
+
+
+      init_supertree = best_supertree_of_current_iter;
+
+      //update "the_best_supertree" if needed
+      if(best_distance_of_current_iter < the_best_wrf_distance) {
+          the_best_wrf_distance= best_distance_of_current_iter;
+          the_best_supertree= best_supertree_of_current_iter;
+      }else {
+
+          cout << "==============================================================================" << endl;
+          cout << "==============================================================================" << endl;
+          cout << "We have reached a local optimum which has better \(or equal\) WRF score than all its spr-neighbors\n";
+          cout << "The overal CPU time in seconds is: "  << total_time << endl;
+          cout << "The best SuperTree found after " << iteration << " number of iterations is: " << endl;
+          cout << the_best_supertree << endl;
+          cout << "And its quartet distance is " << the_best_wrf_distance << endl;
+          cout << "==============================================================================" << endl;
+          cout << "==============================================================================" << endl;
+
+
+          return 0;
+
+      }
+
+  }
 
   return 0;
 }
@@ -1001,6 +1183,146 @@ double calculate_total_wrf(const char* input_file){
 }
 
 
+
+
+
+
+
+
+
+
+//*******************added for SPR neighborhood*********************
+//******************************************************************
+//applies all the possible spr's on "tree", and writes them into the file "z_spr_neighbours"
+int produce_all_spr_neighbors(Node* myTree, int number_of_taxa) {
+
+    int number_of_neighbors= 0;
+
+
+    //The following line deletes the contents of z_spr_neighbours
+    const char* neighbors_file = "z_spr_neighbours";
+    std::ofstream ofile(neighbors_file, ios_base::trunc);
+
+    for(int i=1; i<number_of_taxa; i++) {
+
+        Node* spr_on= myTree->find_by_prenum(i);
+        int which_sibling=0;
+        /*
+        cout << "************************************************************" << endl;
+        cout << "spr_on's pre-order number = i = " << spr_on->get_preorder_number() << endl;
+        cout << "new_sibling's pre-order number = j = " << spr_on->get_preorder_number() << endl;
+        cout << "original  tree: " << myTree->str_subtree() << endl;
+        cout << "************************************************************" << endl;
+        */
+
+        for(int j=1; j<number_of_taxa; j++) {
+
+            if (j != i) {
+
+                Node* new_sibling= myTree->find_by_prenum(j);
+                bool good_spr= true;
+                //cout<< "i = " <<  i << ", j = " << j << endl;
+
+
+
+                //bad spr: check whether new_sibling is parent
+                Node* parent= spr_on->get_p();
+                if (parent->get_preorder_number() == j) {
+                    //cout << "-----BAD SPR WAS IGNORED----- \n" << endl;
+                    continue;
+                }
+
+
+                //bad spr: check whether new_sibling is a descendant of spr_on
+                if(! spr_on->is_leaf()) {
+                    vector<Node *> descendants = spr_on->find_descendants();
+                    vector<Node *>::iterator it;
+                    for(it = descendants.begin(); it!= descendants.end(); ++it) {
+                        if(new_sibling->get_preorder_number() == (*it)->get_preorder_number()) {
+                            //cout << "-----BAD SPR WAS IGNORED----- \n" << endl;
+                            good_spr= false;
+                            continue;       //goes out of the inner loop which is 4 lines above
+                        }
+                    }
+                }
+
+
+                
+
+                //bad spr: if new sibling is old sibling ignore it cuz this spr-move results to the original tree
+                list<Node *>::iterator itr;
+                for(itr = (spr_on->parent())->get_children().begin(); itr!= (spr_on->parent())->get_children().end(); ++itr) {
+                    if((*itr)->get_preorder_number() == j) {
+                        good_spr= false;
+                        continue;
+                    }
+                }
+
+
+                if(good_spr) {
+                  Node* undo= spr_on->spr(new_sibling, which_sibling);
+                  adjustTree(myTree);
+                  number_of_neighbors ++;
+                  string new_tree= myTree ->str_subtree();
+                  writeToFile(new_tree, neighbors_file);
+                  //cout<<  "tree after spr: " << new_tree << "\n" <<endl;
+
+                  //restore the original tree
+                  spr_on->spr(undo, which_sibling);
+                  adjustTree(myTree);
+              }
+
+          }
+
+        }
+
+    }
+
+
+
+//    cout << "**********************************************************" << endl;
+//    cout << "Total Number Of Taxa In Trees: " << number_of_taxa << endl;
+//    cout << "Current Node (Supertree) : " << myTree->str_subtree() << endl;
+//    cout << "#of spr_neighbors of initial supertree = " << number_of_neighbors << endl;
+//    cout << "Trees were written in z_spr_neighbours in newick format." << endl;
+//    cout << "**********************************************************" << endl;
+    return number_of_neighbors;
+
+}
+
+//writes "s\n" into file "file_name"
+void writeToFile(string s,const char* file_name) {
+
+    ofstream myFile;
+    myFile.open(file_name, std::ios_base::app);
+    myFile << s + ";\n";
+    myFile.close();
+
+}
+
+
+void adjustTree(Node* myTree) {
+
+    myTree->set_depth(0);
+    myTree->fix_depths();
+    myTree->preorder_number();
+    myTree->edge_preorder_interval();
+
+}
+
+
+
+
+//returns the total number of nodes in the clade of "node", i.e. (#of taxa)+(#of internal nodes)
+//This method is a modification of the set_preorder_number() method in node.h
+void total_number_of_nodes(Node* node, int& total_nodes) {
+    total_nodes++;
+    list<Node *>::iterator c;
+    list<Node *> children= node->get_children();
+    for(c = children.begin(); c != children.end(); c++) {
+        total_number_of_nodes(*c, total_nodes);
+    }
+}
 
 
 
