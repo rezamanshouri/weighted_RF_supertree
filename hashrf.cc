@@ -63,6 +63,7 @@ double calculate_total_wrf(const char* input_file);
 void writeToFile(string s,const char* file_name);
 void adjustTree(Node* tree);
 int produce_all_spr_neighbors(Node* tree, int number_of_taxa);
+int produce_n_percent_of_spr_neighbors(Node* myTree, int number_of_taxa, int percentage);
 int number_of_taxa(string const tree);
 void total_number_of_nodes(Node* node, int& total_nodes);
 
@@ -484,6 +485,10 @@ int main(int argc, char** argv) {
   int max_number_of_iterationds;
   cin >> max_number_of_iterationds;
 
+  cout << "Please enter the percentage of the SPR-neighborhood to be considered in local search (between 0 and 100): " << endl;
+  int neighborhood_percentage;
+  cin >> neighborhood_percentage; 
+
 
   string init_supertree;
   ifstream init_sup("initial_supertree");
@@ -497,6 +502,7 @@ int main(int argc, char** argv) {
       return -1;
   }
 
+  cout << "********************************************************************" << endl;
 
   string the_best_supertree = init_supertree;
   int the_best_wrf_distance = INT_MAX;
@@ -529,8 +535,9 @@ int main(int argc, char** argv) {
 
 
       //writes all valid spr_neighbors into the file "z_spr_neighbours"
-      int number_of_neighbors= produce_all_spr_neighbors(myTree, total_nodes);
-
+      //int number_of_neighbors= produce_all_spr_neighbors(myTree, total_nodes);
+      int number_of_neighbors= produce_n_percent_of_spr_neighbors(myTree, total_nodes, neighborhood_percentage);
+      cout << "The number of neighbors in iteration " << iteration << " is: " << number_of_neighbors << endl;
 
 
       double best_distance_of_current_iter= INT_MAX;
@@ -1289,6 +1296,135 @@ int produce_all_spr_neighbors(Node* myTree, int number_of_taxa) {
     return number_of_neighbors;
 
 }
+
+
+
+int produce_n_percent_of_spr_neighbors(Node* myTree, int number_of_taxa, int percentage) {
+
+    int number_of_neighbors= 0;
+
+    //this is the idea how I produce a subset of neighbors:
+    //For producing all spr-neighbors we iterate over all nodes by their pre-order counts as "spr_on" node,
+    //and then produce all possible valid neighbors. Now, I do the following to produce a subset of neghbors:
+    //1- given #of taxa and percentage, calculate expected number of neighbors to be produced, M
+    //2- produce M random numbers in range 1 and #of taxa (this is done the way I did it for ratchet_weights), call this set of nodes subset_of_nodes
+    //3- for each node in subset_of_nodes, produce all possible and valid spr neighbors
+    //NOTE that this approach may produce less OR more number of neghbors than |all_spr_neighbors|*percentage
+
+    
+    
+    int arr[number_of_taxa];
+    for(int i = 0; i < number_of_taxa; ++i)
+        arr[i] = i;
+    
+    random_shuffle(arr, arr + number_of_taxa);
+    
+    int M = (number_of_taxa*percentage)/100;
+    int subset_of_nodes[M];
+
+    for(int i=0; i<M; i++) {
+        subset_of_nodes[i]= arr[i];
+    }
+
+
+
+    //The following line deletes the contents of Z_spr_neighbors.txt
+    const char* neighbors_file = "z_spr_neighbours";
+    std::ofstream ofile(neighbors_file, ios_base::trunc);
+
+    for(int counter=0; counter<M; counter++) {
+
+        int i = subset_of_nodes[counter];
+        if (i == 0) continue;   //SPR on root?? Nonsense.
+
+        Node* spr_on= myTree->find_by_prenum(i);
+        int which_sibling=0;
+        /*
+        cout << "************************************************************" << endl;
+        cout << "spr_on's pre-order number = i = " << spr_on->get_preorder_number() << endl;
+        cout << "new_sibling's pre-order number = j = " << spr_on->get_preorder_number() << endl;
+        cout << "original  tree: " << myTree->str_subtree() << endl;
+        cout << "************************************************************" << endl;
+        */
+
+        for(int j=1; j<number_of_taxa; j++) {
+
+            if (j != i) {
+
+                Node* new_sibling= myTree->find_by_prenum(j);
+                bool good_spr= true;
+                //cout<< "i = " <<  i << ", j = " << j << endl;
+
+
+
+                //bad spr: check whether new_sibling is parent
+                Node* parent= spr_on->get_p();
+                if (parent->get_preorder_number() == j) {
+                    //cout << "-----BAD SPR WAS IGNORED----- \n" << endl;
+                    continue;
+                }
+
+
+                //bad spr: check whether new_sibling is a descendant of spr_on
+                if(! spr_on->is_leaf()) {
+                    vector<Node *> descendants = spr_on->find_descendants();
+                    vector<Node *>::iterator it;
+                    for(it = descendants.begin(); it!= descendants.end(); ++it) {
+                        if(new_sibling->get_preorder_number() == (*it)->get_preorder_number()) {
+                            //cout << "-----BAD SPR WAS IGNORED----- \n" << endl;
+                            good_spr= false;
+                            continue;       //goes out of the inner loop which is 4 lines above
+                        }
+                    }
+                }
+
+
+                
+
+                //bad spr: if new sibling is old sibling ignore it cuz this spr-move results to the original tree
+                list<Node *>::iterator itr;
+                for(itr = (spr_on->parent())->get_children().begin(); itr!= (spr_on->parent())->get_children().end(); ++itr) {
+                    if((*itr)->get_preorder_number() == j) {
+                        good_spr= false;
+                        continue;
+                    }
+                }
+
+
+                if(good_spr) {
+                  Node* undo= spr_on->spr(new_sibling, which_sibling);
+                  adjustTree(myTree);
+                  number_of_neighbors ++;
+                  string new_tree= myTree ->str_subtree();
+                  writeToFile(new_tree, neighbors_file);
+                  //cout<<  "tree after spr: " << new_tree << "\n" <<endl;
+
+                  //restore the original tree
+                  spr_on->spr(undo, which_sibling);
+                  adjustTree(myTree);
+              }
+
+          }
+
+        }
+
+    }
+
+
+
+//    cout << "**********************************************************" << endl;
+//    cout << "Total Number Of Taxa In Trees: " << number_of_taxa << endl;
+//    cout << "Current Node (Supertree) : " << myTree->str_subtree() << endl;
+//    cout << "#of spr_neighbors of initial supertree = " << number_of_neighbors << endl;
+//    cout << "Trees were written in Z_spr_neighbors.txt in newick format." << endl;
+//    cout << "**********************************************************" << endl;
+    return number_of_neighbors;
+
+}
+
+
+
+
 
 //writes "s\n" into file "file_name"
 void writeToFile(string s,const char* file_name) {

@@ -27,6 +27,10 @@ uname -v = #57~14.04.1-Ubuntu SMP Tue Sep 6 17:20:43 UTC 2016
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
 
+PATH: /home/reza/anaconda_ete/bin/
+PATH: /home/reza/anaconda_ete/bin/
+PATH: /home/reza/anaconda_ete/bin/
+PATH: /home/reza/anaconda_ete/bin/
 PATH: /usr/local/heroku/bin
 PATH: /home/reza/.rvm/gems/ruby-2.3.0/bin
 PATH: /home/reza/.rvm/gems/ruby-2.3.0@global/bin
@@ -61,30 +65,30 @@ configure:2000: result: gawk
 configure:2011: checking whether make sets $(MAKE)
 configure:2032: result: yes
 configure:2282: checking for g++
-configure:2298: found /usr/bin/g++
+configure:2298: found /home/reza/anaconda_ete/bin//g++
 configure:2309: result: g++
 configure:2340: checking for C++ compiler version
 configure:2347: g++ --version >&5
-g++ (Ubuntu 4.9.4-2ubuntu1~14.04.1) 4.9.4
+g++ (GCC) 4.8.5
 Copyright (C) 2015 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 configure:2350: $? = 0
 configure:2357: g++ -v >&5
-Using built-in specs.
+Reading specs from /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/specs
 COLLECT_GCC=g++
-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.9/lto-wrapper
-Target: x86_64-linux-gnu
-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.9.4-2ubuntu1~14.04.1' --with-bugurl=file:///usr/share/doc/gcc-4.9/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.9 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.9 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-4.9-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-4.9-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-4.9-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+COLLECT_LTO_WRAPPER=/home/reza/anaconda_ete/gcc/libexec/gcc/x86_64-unknown-linux-gnu/4.8.5/lto-wrapper
+Target: x86_64-unknown-linux-gnu
+Configured with: ./configure --prefix=/home/reza/anaconda_ete/gcc --with-gxx-include-dir=/home/reza/anaconda_ete/gcc/include/c++ --bindir=/home/reza/anaconda_ete/bin --datarootdir=/home/reza/anaconda_ete/share --libdir=/home/reza/anaconda_ete/lib --with-gmp=/home/reza/anaconda_ete --with-mpfr=/home/reza/anaconda_ete --with-mpc=/home/reza/anaconda_ete --with-isl=/home/reza/anaconda_ete --with-cloog=/home/reza/anaconda_ete --enable-checking=release --with-tune=generic --disable-multilib
 Thread model: posix
-gcc version 4.9.4 (Ubuntu 4.9.4-2ubuntu1~14.04.1) 
+gcc version 4.8.5 (GCC) 
 configure:2360: $? = 0
 configure:2367: g++ -V >&5
 g++: error: unrecognized command line option '-V'
 g++: fatal error: no input files
 compilation terminated.
-configure:2370: $? = 4
+configure:2370: $? = 1
 configure:2393: checking for C++ compiler default output file name
 configure:2420: g++    conftest.cpp  >&5
 configure:2423: $? = 0
@@ -118,30 +122,30 @@ configure:2986: result: gcc3
 configure:3014: checking for a BSD-compatible install
 configure:3070: result: /usr/bin/install -c
 configure:3134: checking for gcc
-configure:3150: found /usr/bin/gcc
+configure:3150: found /home/reza/anaconda_ete/bin//gcc
 configure:3161: result: gcc
 configure:3399: checking for C compiler version
 configure:3406: gcc --version >&5
-gcc (Ubuntu 4.9.4-2ubuntu1~14.04.1) 4.9.4
+gcc (GCC) 4.8.5
 Copyright (C) 2015 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 configure:3409: $? = 0
 configure:3416: gcc -v >&5
-Using built-in specs.
+Reading specs from /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/specs
 COLLECT_GCC=gcc
-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.9/lto-wrapper
-Target: x86_64-linux-gnu
-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.9.4-2ubuntu1~14.04.1' --with-bugurl=file:///usr/share/doc/gcc-4.9/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.9 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.9 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-4.9-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-4.9-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-4.9-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+COLLECT_LTO_WRAPPER=/home/reza/anaconda_ete/gcc/libexec/gcc/x86_64-unknown-linux-gnu/4.8.5/lto-wrapper
+Target: x86_64-unknown-linux-gnu
+Configured with: ./configure --prefix=/home/reza/anaconda_ete/gcc --with-gxx-include-dir=/home/reza/anaconda_ete/gcc/include/c++ --bindir=/home/reza/anaconda_ete/bin --datarootdir=/home/reza/anaconda_ete/share --libdir=/home/reza/anaconda_ete/lib --with-gmp=/home/reza/anaconda_ete --with-mpfr=/home/reza/anaconda_ete --with-mpc=/home/reza/anaconda_ete --with-isl=/home/reza/anaconda_ete --with-cloog=/home/reza/anaconda_ete --enable-checking=release --with-tune=generic --disable-multilib
 Thread model: posix
-gcc version 4.9.4 (Ubuntu 4.9.4-2ubuntu1~14.04.1) 
+gcc version 4.8.5 (GCC) 
 configure:3419: $? = 0
 configure:3426: gcc -V >&5
 gcc: error: unrecognized command line option '-V'
 gcc: fatal error: no input files
 compilation terminated.
-configure:3429: $? = 4
+configure:3429: $? = 1
 configure:3432: checking whether we are using the GNU C compiler
 configure:3461: gcc -c   conftest.c >&5
 configure:3467: $? = 0
@@ -264,7 +268,7 @@ configure:4853: checking for ANSI C header files
 configure:5017: result: yes
 configure:5031: checking for strcpy
 configure:5087: gcc -o conftest -g -O2   conftest.c  >&5
-conftest.c:45:6: warning: conflicting types for built-in function 'strcpy'
+conftest.c:45:6: warning: conflicting types for built-in function 'strcpy' [enabled by default]
  char strcpy ();
       ^
 configure:5093: $? = 0
@@ -469,21 +473,3 @@ target_alias=''
 #define HAVE_STRCPY 1
 
 configure: exit 0
-
-## ---------------------- ##
-## Running config.status. ##
-## ---------------------- ##
-
-This file was extended by hashrf config.status 6.0.0, which was
-generated by GNU Autoconf 2.61.  Invocation command line was
-
-  CONFIG_FILES    = 
-  CONFIG_HEADERS  = 
-  CONFIG_LINKS    = 
-  CONFIG_COMMANDS = 
-  $ ./config.status config.h
-
-on Reza
-
-config.status:641: creating config.h
-config.status:870: config.h is unchanged
