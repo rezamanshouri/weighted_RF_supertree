@@ -17,6 +17,7 @@ hash.o: hash.cc /usr/include/stdc-predef.h hash.hh \
  /home/reza/anaconda_ete/gcc/include/c++/bits/stl_pair.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/move.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/concept_check.h \
+ /home/reza/anaconda_ete/gcc/include/c++/type_traits \
  /home/reza/anaconda_ete/gcc/include/c++/bits/stl_iterator_base_types.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/stl_iterator_base_funcs.h \
  /home/reza/anaconda_ete/gcc/include/c++/debug/debug.h \
@@ -27,43 +28,47 @@ hash.o: hash.cc /usr/include/stdc-predef.h hash.hh \
  /home/reza/anaconda_ete/gcc/include/c++/new \
  /home/reza/anaconda_ete/gcc/include/c++/exception \
  /home/reza/anaconda_ete/gcc/include/c++/bits/atomic_lockfree_defines.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/exception_ptr.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/nested_exception.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/memoryfwd.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/stl_function.h \
  /home/reza/anaconda_ete/gcc/include/c++/backward/binders.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/alloc_traits.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/ptr_traits.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/stl_map.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/stl_multimap.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/range_access.h \
- /home/reza/anaconda_ete/gcc/include/c++/vector \
- /home/reza/anaconda_ete/gcc/include/c++/bits/stl_construct.h \
- /home/reza/anaconda_ete/gcc/include/c++/ext/alloc_traits.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/stl_uninitialized.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/stl_vector.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/stl_bvector.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/vector.tcc hashfunc.hh \
- /home/reza/anaconda_ete/gcc/include/c++/iostream \
- /home/reza/anaconda_ete/gcc/include/c++/ostream \
- /home/reza/anaconda_ete/gcc/include/c++/ios \
- /home/reza/anaconda_ete/gcc/include/c++/iosfwd \
+ /home/reza/anaconda_ete/gcc/include/c++/initializer_list \
+ /home/reza/anaconda_ete/gcc/include/c++/tuple \
+ /home/reza/anaconda_ete/gcc/include/c++/utility \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/stl_relops.h \
+ /home/reza/anaconda_ete/gcc/include/c++/array \
+ /home/reza/anaconda_ete/gcc/include/c++/stdexcept \
+ /home/reza/anaconda_ete/gcc/include/c++/string \
  /home/reza/anaconda_ete/gcc/include/c++/bits/stringfwd.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/char_traits.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/postypes.h \
  /home/reza/anaconda_ete/gcc/include/c++/cwchar /usr/include/wchar.h \
  /usr/include/stdio.h \
  /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include/stdarg.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
  /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include/stddef.h \
- /usr/include/xlocale.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/char_traits.h \
+ /usr/include/xlocale.h /home/reza/anaconda_ete/gcc/include/c++/cstdint \
+ /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include/stdint.h \
+ /usr/include/stdint.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/localefwd.h \
  /home/reza/anaconda_ete/gcc/include/c++/x86_64-unknown-linux-gnu/bits/c++locale.h \
  /home/reza/anaconda_ete/gcc/include/c++/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h \
+ /home/reza/anaconda_ete/gcc/include/c++/iosfwd \
  /home/reza/anaconda_ete/gcc/include/c++/cctype /usr/include/ctype.h \
  /usr/include/x86_64-linux-gnu/bits/types.h \
  /usr/include/x86_64-linux-gnu/bits/typesizes.h /usr/include/endian.h \
  /usr/include/x86_64-linux-gnu/bits/endian.h \
  /usr/include/x86_64-linux-gnu/bits/byteswap.h \
  /usr/include/x86_64-linux-gnu/bits/byteswap-16.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/ios_base.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/ostream_insert.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/cxxabi_forced.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/range_access.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/basic_string.h \
  /home/reza/anaconda_ete/gcc/include/c++/ext/atomicity.h \
  /home/reza/anaconda_ete/gcc/include/c++/x86_64-unknown-linux-gnu/bits/gthr.h \
  /home/reza/anaconda_ete/gcc/include/c++/x86_64-unknown-linux-gnu/bits/gthr-default.h \
@@ -74,12 +79,42 @@ hash.o: hash.cc /usr/include/stdc-predef.h hash.hh \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
  /usr/include/x86_64-linux-gnu/bits/setjmp.h \
  /home/reza/anaconda_ete/gcc/include/c++/x86_64-unknown-linux-gnu/bits/atomic_word.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/locale_classes.h \
- /home/reza/anaconda_ete/gcc/include/c++/string \
- /home/reza/anaconda_ete/gcc/include/c++/bits/ostream_insert.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/cxxabi_forced.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/basic_string.h \
+ /home/reza/anaconda_ete/gcc/include/c++/ext/string_conversions.h \
+ /home/reza/anaconda_ete/gcc/include/c++/cstdlib /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/waitflags.h \
+ /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
+ /usr/include/x86_64-linux-gnu/sys/types.h \
+ /usr/include/x86_64-linux-gnu/sys/select.h \
+ /usr/include/x86_64-linux-gnu/bits/select.h \
+ /usr/include/x86_64-linux-gnu/bits/sigset.h \
+ /usr/include/x86_64-linux-gnu/sys/sysmacros.h /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /home/reza/anaconda_ete/gcc/include/c++/cstdio /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/sys_errlist.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h \
+ /home/reza/anaconda_ete/gcc/include/c++/cerrno /usr/include/errno.h \
+ /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
+ /usr/include/x86_64-linux-gnu/asm/errno.h \
+ /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/functional_hash.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/hash_bytes.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/basic_string.tcc \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/uses_allocator.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/stl_multimap.h \
+ /home/reza/anaconda_ete/gcc/include/c++/vector \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/stl_construct.h \
+ /home/reza/anaconda_ete/gcc/include/c++/ext/alloc_traits.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/stl_uninitialized.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/stl_vector.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/stl_bvector.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/vector.tcc hashfunc.hh \
+ /home/reza/anaconda_ete/gcc/include/c++/iostream \
+ /home/reza/anaconda_ete/gcc/include/c++/ostream \
+ /home/reza/anaconda_ete/gcc/include/c++/ios \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/ios_base.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/locale_classes.h \
  /home/reza/anaconda_ete/gcc/include/c++/bits/locale_classes.tcc \
  /home/reza/anaconda_ete/gcc/include/c++/streambuf \
  /home/reza/anaconda_ete/gcc/include/c++/bits/streambuf.tcc \
@@ -96,16 +131,10 @@ hash.o: hash.cc /usr/include/stdc-predef.h hash.hh \
  /home/reza/anaconda_ete/gcc/include/c++/bits/istream.tcc \
  /home/reza/anaconda_ete/gcc/include/c++/fstream \
  /home/reza/anaconda_ete/gcc/include/c++/bits/codecvt.h \
- /home/reza/anaconda_ete/gcc/include/c++/cstdio /usr/include/libio.h \
- /usr/include/_G_config.h /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
- /usr/include/x86_64-linux-gnu/bits/sys_errlist.h \
- /usr/include/x86_64-linux-gnu/bits/stdio.h \
  /home/reza/anaconda_ete/gcc/include/c++/x86_64-unknown-linux-gnu/bits/basic_file.h \
  /home/reza/anaconda_ete/gcc/include/c++/x86_64-unknown-linux-gnu/bits/c++io.h \
- /home/reza/anaconda_ete/gcc/include/c++/bits/fstream.tcc \
- /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include/stdint.h \
- /usr/include/stdint.h randomc.h /usr/include/math.h \
- /usr/include/x86_64-linux-gnu/bits/huge_val.h \
+ /home/reza/anaconda_ete/gcc/include/c++/bits/fstream.tcc randomc.h \
+ /usr/include/math.h /usr/include/x86_64-linux-gnu/bits/huge_val.h \
  /usr/include/x86_64-linux-gnu/bits/huge_valf.h \
  /usr/include/x86_64-linux-gnu/bits/huge_vall.h \
  /usr/include/x86_64-linux-gnu/bits/inf.h \
@@ -156,6 +185,8 @@ hash.hh:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/concept_check.h:
 
+/home/reza/anaconda_ete/gcc/include/c++/type_traits:
+
 /home/reza/anaconda_ete/gcc/include/c++/bits/stl_iterator_base_types.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/stl_iterator_base_funcs.h:
@@ -176,43 +207,39 @@ hash.hh:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/atomic_lockfree_defines.h:
 
+/home/reza/anaconda_ete/gcc/include/c++/bits/exception_ptr.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/nested_exception.h:
+
 /home/reza/anaconda_ete/gcc/include/c++/bits/memoryfwd.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/stl_function.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/backward/binders.h:
 
+/home/reza/anaconda_ete/gcc/include/c++/bits/alloc_traits.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/ptr_traits.h:
+
 /home/reza/anaconda_ete/gcc/include/c++/bits/stl_map.h:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/stl_multimap.h:
+/home/reza/anaconda_ete/gcc/include/c++/initializer_list:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/range_access.h:
+/home/reza/anaconda_ete/gcc/include/c++/tuple:
 
-/home/reza/anaconda_ete/gcc/include/c++/vector:
+/home/reza/anaconda_ete/gcc/include/c++/utility:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/stl_construct.h:
+/home/reza/anaconda_ete/gcc/include/c++/bits/stl_relops.h:
 
-/home/reza/anaconda_ete/gcc/include/c++/ext/alloc_traits.h:
+/home/reza/anaconda_ete/gcc/include/c++/array:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/stl_uninitialized.h:
+/home/reza/anaconda_ete/gcc/include/c++/stdexcept:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/stl_vector.h:
-
-/home/reza/anaconda_ete/gcc/include/c++/bits/stl_bvector.h:
-
-/home/reza/anaconda_ete/gcc/include/c++/bits/vector.tcc:
-
-hashfunc.hh:
-
-/home/reza/anaconda_ete/gcc/include/c++/iostream:
-
-/home/reza/anaconda_ete/gcc/include/c++/ostream:
-
-/home/reza/anaconda_ete/gcc/include/c++/ios:
-
-/home/reza/anaconda_ete/gcc/include/c++/iosfwd:
+/home/reza/anaconda_ete/gcc/include/c++/string:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/stringfwd.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/char_traits.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/postypes.h:
 
@@ -230,7 +257,11 @@ hashfunc.hh:
 
 /usr/include/xlocale.h:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/char_traits.h:
+/home/reza/anaconda_ete/gcc/include/c++/cstdint:
+
+/home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include/stdint.h:
+
+/usr/include/stdint.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/localefwd.h:
 
@@ -241,6 +272,8 @@ hashfunc.hh:
 /usr/include/locale.h:
 
 /usr/include/x86_64-linux-gnu/bits/locale.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/iosfwd:
 
 /home/reza/anaconda_ete/gcc/include/c++/cctype:
 
@@ -258,7 +291,13 @@ hashfunc.hh:
 
 /usr/include/x86_64-linux-gnu/bits/byteswap-16.h:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/ios_base.h:
+/home/reza/anaconda_ete/gcc/include/c++/bits/ostream_insert.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/cxxabi_forced.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/range_access.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/basic_string.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/ext/atomicity.h:
 
@@ -284,17 +323,93 @@ hashfunc.hh:
 
 /home/reza/anaconda_ete/gcc/include/c++/x86_64-unknown-linux-gnu/bits/atomic_word.h:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/locale_classes.h:
+/home/reza/anaconda_ete/gcc/include/c++/ext/string_conversions.h:
 
-/home/reza/anaconda_ete/gcc/include/c++/string:
+/home/reza/anaconda_ete/gcc/include/c++/cstdlib:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/ostream_insert.h:
+/usr/include/stdlib.h:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/cxxabi_forced.h:
+/usr/include/x86_64-linux-gnu/bits/waitflags.h:
 
-/home/reza/anaconda_ete/gcc/include/c++/bits/basic_string.h:
+/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
+
+/usr/include/x86_64-linux-gnu/sys/types.h:
+
+/usr/include/x86_64-linux-gnu/sys/select.h:
+
+/usr/include/x86_64-linux-gnu/bits/select.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigset.h:
+
+/usr/include/x86_64-linux-gnu/sys/sysmacros.h:
+
+/usr/include/alloca.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/cstdio:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/sys_errlist.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/cerrno:
+
+/usr/include/errno.h:
+
+/usr/include/x86_64-linux-gnu/bits/errno.h:
+
+/usr/include/linux/errno.h:
+
+/usr/include/x86_64-linux-gnu/asm/errno.h:
+
+/usr/include/asm-generic/errno.h:
+
+/usr/include/asm-generic/errno-base.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/functional_hash.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/hash_bytes.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/basic_string.tcc:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/uses_allocator.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/stl_multimap.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/vector:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/stl_construct.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/ext/alloc_traits.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/stl_uninitialized.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/stl_vector.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/stl_bvector.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/vector.tcc:
+
+hashfunc.hh:
+
+/home/reza/anaconda_ete/gcc/include/c++/iostream:
+
+/home/reza/anaconda_ete/gcc/include/c++/ostream:
+
+/home/reza/anaconda_ete/gcc/include/c++/ios:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/ios_base.h:
+
+/home/reza/anaconda_ete/gcc/include/c++/bits/locale_classes.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/locale_classes.tcc:
 
@@ -330,27 +445,11 @@ hashfunc.hh:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/codecvt.h:
 
-/home/reza/anaconda_ete/gcc/include/c++/cstdio:
-
-/usr/include/libio.h:
-
-/usr/include/_G_config.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
-
-/usr/include/x86_64-linux-gnu/bits/sys_errlist.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdio.h:
-
 /home/reza/anaconda_ete/gcc/include/c++/x86_64-unknown-linux-gnu/bits/basic_file.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/x86_64-unknown-linux-gnu/bits/c++io.h:
 
 /home/reza/anaconda_ete/gcc/include/c++/bits/fstream.tcc:
-
-/home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/include/stdint.h:
-
-/usr/include/stdint.h:
 
 randomc.h:
 

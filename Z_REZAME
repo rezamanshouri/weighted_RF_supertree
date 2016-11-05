@@ -1,0 +1,53 @@
+
+Note that when calling hashrf with "-w" to compute WRF dist, then all internal
+edges without weight are considered to have weight 0. The regular call to hashrf
+(i.e. without "-w") will ignore all weights.
+Thus, at the beginning, I am giving all internal edges weight 1, and 
+store the "weighted" trees into file "z_weighted_source_trees"
+ between two trees whose all weights (i.e. branch lenghts)
+is 1 IS NOT the same ar unweighted RF dist them.
+Note I don't need to give weight 1 to branches of supertree because every time
+I want to pass it to hashrf, first I restrict it to the source tree to which
+it is compared using my python code which by default puts weights 1 to those
+branches without any weights (in the supertree) and preserves, all the previous
+weights (on the source tree).
+note this python code is called ("#of neighbors"*"#of source trees") times in each iter,
+making it c++ code will help.
+SOOOOOO... if you decide to write the c++ code for that, remember you need to take
+care of weights as described above, OR alse you need to change some parts of your code.
+
+**********************************************************************
+**********************************************************************
+
+give hashrf two weighted trees and undesrtand what it means, look at manual:
+-w should be used
+
+
+look at the book "Inferring Phylogenies" by Felsenstein for definition.
+
+
+Terminologically, "weighted" RF means weighting the distance by the
+subtending edge length. If you really do mean weighted by edge length,
+then this functionality already exists in DendroPy.
+
+
+
+The weighted RF distance is the sum of the differences between corresponding branch lengths; a branch length is considered to be zero if it does not exist in one of the trees. The branch score is similar, but squares the differences before adding them,and the square root of this sum is named the branch-length distance(BLD).
+
+**********************************************************************
+**********************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

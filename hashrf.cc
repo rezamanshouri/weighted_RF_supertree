@@ -29,6 +29,7 @@ void write_line_to_File(string s,const char* file_name);
 double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv);
 void restrict_st_to_source_tree();
 double calculate_total_wrf(const char* input_file);
+double calculate_total_rf(const char* input_file);
 
 
 //************ADDED FOR SPR neihborhood************>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -465,27 +466,45 @@ print_rf_float_matrix(
 int main(int argc, char** argv) {
   srand((unsigned)time(NULL));
 
-  /*
-  //add weight 1 to all nternal edges: using perl replace all ")" with ""):1" except last one i.e. "):1;"
+  //Remember each ratchtet iteration has two separate hill-climbing seraches
+  //1- on weighted characters: for this step, I use "hashrf z_weighted_input_trees_reweighted 0 -w" command, where z_weighted_input_trees file is generated below and modified in each iteration 
+  //2- on unweighted characters: for this step, I use "hashrf argv[1] 0" command
+  
+  //Note for varaiable names, I used "..._wrf_dist_..." which is sometimes actually wrf_dist and sometimes rf_dist
+  //based on whether we are in what hill_climbing phase of each ratchet iter. This is fine since
+  //the way both are done is the same. However, the_best_supertree_seen is updated only when we are in
+  //unweighted hill-climbing phase of the ratchet iter and found a better rf-dist.
+
+
+  //file "z_weighted_input_trees_reweighted" is created from "z_weighted_input_trees_original" by calling 
+  // change_branch_lengths() on each line of it and copying the output to "z_weighted_input_trees_reweighted"
+
+  //add weight 1 to all internal edges: using perl replace all ")" with ""):1" except last one i.e. "):1;"
   string argv1(argv[1]);
-  string command1 = "perl -pe 's/\\)/):1/g' " + argv1 + " > z_temp; cat z_temp > " + argv1 + "; rm z_temp";
+  string command1 = "perl -pe 's/\\)/):1/g' " + argv1 + " > z_weighted_input_trees_original";
   system(command1.c_str());
-  string command2 = "perl -pe 's/:1;/;/g' " + argv1 + " > z_temp; cat z_temp> " + argv1 + "; rm z_temp";
+  string command2 = "perl -pe 's/:1;/;/g' z_weighted_input_trees_original > z_temp; cat z_temp> z_weighted_input_trees_original; rm z_temp";
   system(command2.c_str());
-  //now on inital_supertree file  
-  command1 = "perl -pe 's/\\)/):1/g' initial_supertree > z_temp; cat z_temp > initial_supertree; rm z_temp";
-  system(command1.c_str());  
-  command2 = "perl -pe 's/:1;/;/g' initial_supertree > z_temp; cat z_temp> initial_supertree; rm z_temp";
-  system(command2.c_str());
-  */
+  
+  //Note we don't need to "weight" ST since when calling restrict_st_to_source_tree(), it gets weighted.
 
 
-  cout << "Please enter the max number of iterations: " << endl;
+
+
+  cout << "Please enter the pre-specified number of 'ratchet' iterations: " << endl;
   //pre-specified number of iterations if it didn't stop after this number of iterations
-  int max_number_of_iterationds;
-  cin >> max_number_of_iterationds;
+  int number_of_ratchet_iterations;
+  cin >> number_of_ratchet_iterations;
 
-  cout << "Please enter the percentage of the SPR-neighborhood to be considered in local search (between 0 and 100): " << endl;
+  cout << "Please enter the percentage of clades to be re-weighted in Ratchet search (between 0 and 100): " << endl;
+  int percentage_of_clades_to_be_reweighted;
+  cin >> percentage_of_clades_to_be_reweighted;
+
+  cout << "Please enter the new weight to which clades be re-weighted in Ratchet search (between 0 and 10): " << endl;
+  int ratchet_weight;
+  cin >> ratchet_weight;  
+
+  cout << "Please enter the percentage of the SPR-neighborhood to be considered (randomly) in each local search (between 0 and 100): " << endl;
   int neighborhood_percentage;
   cin >> neighborhood_percentage; 
 
@@ -504,87 +523,123 @@ int main(int argc, char** argv) {
 
   cout << "********************************************************************" << endl;
 
-  string the_best_supertree = init_supertree;
-  int the_best_wrf_distance = INT_MAX;
-
-  double total_time= 0;
 
 
-  int iteration= 0;
-
-  //main loop
-  while (iteration < max_number_of_iterationds) {
-      iteration ++;
-
-      clock_t start_time,finish_time;
-      start_time= clock();
+  //running time
+  clock_t start_time,finish_time;
+  start_time= clock();
 
 
-
-      Node* myTree= build_tree(init_supertree);
-      adjustTree(myTree);
-
-      int total_nodes=0;
-      total_number_of_nodes(myTree, total_nodes);
+  //just to keep track of best ST seen throughout the algorithm
+  string the_best_supertree_seen = init_supertree;
+  int the_best_wrf_distance_seen = INT_MAX;
 
 
+  ////////////////////////////////////////////////
+  //////////////////////ratchet///////////////////
+  ////////////////////////////////////////////////
 
-      //write init_supertree into "z_spr_neighbours"
-      const char* neighbors_file = "z_spr_neighbours";
-      writeToFile(init_supertree, neighbors_file);
+  //ratchet search loop
+  for(int ratchet_counter = 1; ratchet_counter < number_of_ratchet_iterations+1; ratchet_counter++) {
 
+      bool ratchet= true; //when true, use re-weighted input trees; when false, use unweighted trees.
 
-      //writes all valid spr_neighbors into the file "z_spr_neighbours"
-      //int number_of_neighbors= produce_all_spr_neighbors(myTree, total_nodes);
-      int number_of_neighbors= produce_n_percent_of_spr_neighbors(myTree, total_nodes, neighborhood_percentage);
-      cout << "The number of neighbors in iteration " << iteration << " is: " << number_of_neighbors << endl;
-
-
-      double best_distance_of_current_iter= INT_MAX;
-      string best_supertree_of_current_iter;
-
-
-      string suptree;
-
-      ifstream supertrees;
-      supertrees.open ("z_spr_neighbours");
-
-      //This while goes through all the ST's in the
-      // "z_spr_neighbours" file.
-      while (getline(supertrees, suptree)) {
-
-          //replace "suptree" with the ST at the beginning of the "z_wrf_input"
-              //This is done in 3 steps:
-              // 1- creating a new file, "z_wrf_input", in each iteration of the while-loop
-              // 2- adding the "suptree" string variable at the beginning of "z_wrf_input"
-              // 3- concatenating the source_trees' file to "z_wrf_input"
-
-          const char* source_trees_file_name= argv[1]; //the first command line argument
-          std::ofstream wrf_file;
-          wrf_file.open ("z_wrf_input");
-          string current_supertree= suptree+"\n";
-          wrf_file << current_supertree;
-
-          ifstream source_trees(source_trees_file_name);
-          wrf_file << source_trees.rdbuf();
-          source_trees.close();
-
-          wrf_file.close();
-
-
-          //the following line computes the wrf dist. of ST to source trees
-          double current_supertree_wrf_distance = calculate_total_wrf("z_wrf_input");
-          cout << current_supertree_wrf_distance << endl;
-
-          ///cout << suptree << "  with score: " << current_supertree_wrf_distance << endl;
-          if(current_supertree_wrf_distance < best_distance_of_current_iter) {
-              best_distance_of_current_iter= current_supertree_wrf_distance;
-              best_supertree_of_current_iter= suptree;
-          }
-
-
+      const char* source_trees_for_this_search;
+      if(ratchet) {
+        ofstream reweighted_input_trees;
+        reweighted_input_trees.open("z_weighted_input_trees_reweighted");
+        ifstream original_weighted_trees;
+        original_weighted_trees.open("z_weighted_input_trees_original");
+        string current_tree;
+        while(getline(original_weighted_trees, current_tree)) {
+          current_tree = change_branch_lengths(current_tree, percentage_of_clades_to_be_reweighted, ratchet_weight) + "\n";
+          reweighted_input_trees << current_tree;          
+        }
+        original_weighted_trees.close();
+        reweighted_input_trees.close();
+        source_trees_for_this_search = "z_weighted_input_trees_reweighted";    
+      }else {
+        source_trees_for_this_search = argv[1];
       }
-      supertrees.close();
+
+
+
+
+      int the_best_wrf_distance_of_current_hill= INT_MAX;
+      string the_best_supertree_of_current_hill;
+
+      //search until reaching a local optimum
+      int iteration = 0;
+      while (true) {
+          iteration ++;
+
+          //cout << "==========================" << init_supertree << endl;
+          Node* myTree= build_tree(init_supertree);
+          adjustTree(myTree);
+
+          int total_nodes=0;
+          total_number_of_nodes(myTree, total_nodes);
+
+
+          //write init_supertree into "z_spr_neighbours"
+          const char* neighbors_file = "z_spr_neighbours";
+          writeToFile(init_supertree, neighbors_file);
+
+
+          //writes all valid spr_neighbors into the file "z_spr_neighbours"
+          //int number_of_neighbors= produce_all_spr_neighbors(myTree, total_nodes);
+          int number_of_neighbors= produce_n_percent_of_spr_neighbors(myTree, total_nodes, neighborhood_percentage);
+          //cout << "The number of neighbors in iteration " << iteration << " is: " << number_of_neighbors << endl;
+
+
+          int best_distance_of_current_iter= INT_MAX;
+          string best_supertree_of_current_iter;
+
+
+          string suptree;
+
+          ifstream supertrees;
+          supertrees.open ("z_spr_neighbours");
+
+          //This while goes through all the ST's in the
+          // "z_spr_neighbours" file.
+          while (getline(supertrees, suptree)) {
+
+            //replace "suptree" with the ST at the beginning of the "z_wrf_input"
+                //This is done in 3 steps:
+                // 1- creating a new file, "z_wrf_input", in each iteration of the while-loop
+                // 2- adding the "suptree" string variable at the beginning of "z_wrf_input"
+                // 3- concatenating the source_trees' file to "z_wrf_input"
+
+            std::ofstream wrf_file;
+            wrf_file.open ("z_wrf_input");
+            string current_supertree= suptree+"\n";
+            wrf_file << current_supertree;
+
+            ifstream source_trees(source_trees_for_this_search);
+            wrf_file << source_trees.rdbuf();
+            source_trees.close();
+
+            wrf_file.close();
+
+
+            //the following line computes the wrf dist. of ST to source trees
+            int current_supertree_wrf_distance;
+            if(ratchet) {
+              current_supertree_wrf_distance = calculate_total_wrf("z_wrf_input");
+            } else {
+              current_supertree_wrf_distance = calculate_total_rf("z_wrf_input");
+            }    
+            //cout << current_supertree_wrf_distance << endl;
+
+            ///cout << suptree << "  with score: " << current_supertree_wrf_distance << endl;
+            if(current_supertree_wrf_distance < best_distance_of_current_iter) {
+                best_distance_of_current_iter= current_supertree_wrf_distance;
+                best_supertree_of_current_iter= suptree;
+            }
+          }//end of one local search
+          supertrees.close();
+
 
 
       cout << "****************************************************" << endl;
@@ -592,56 +647,93 @@ int main(int argc, char** argv) {
           number_of_neighbors << " spr-neighbors is" <<endl;
       cout << best_supertree_of_current_iter << endl;
       cout << "And its WRF distance is: " << best_distance_of_current_iter << endl;
-
-
-      finish_time=clock();
-      float diff ((float)finish_time - (float)start_time);
-      float seconds= diff / CLOCKS_PER_SEC;
-      total_time += seconds;
-      //cout << "The #of clock ticks of this iteration: " << diff << endl;
-      cout << "running time of this iteration, in seconds: " << seconds << endl;
-
       cout << "****************************************************" << endl;
 
+      //init_supertree = best_supertree_of_current_iter;  //it's WRONG to be here.
+      /****************************
+      NOTE:
+      the above line, should be moved to inside of next if-statement CUZ when we reach a local opt,
+      "best_supertree_of_current_iter" is not better than "init_supertree" at the beginning of this iteration,
+      and we do not want to change "init_supertree". Note this does NOT matter for basi hill climbing, qsdt. 
+      However, in ratchet, it DOES matter since the best supertree tree of each hill, will be fed as initial
+      supertree of next hill climbing phase.
+      *****************************/
 
+      //Is it local optimum? 
+      //update "the_best_wrf_distance_of_current_hill" if needed
+      if(best_distance_of_current_iter < the_best_wrf_distance_of_current_hill) {
 
-      init_supertree = best_supertree_of_current_iter;
+          init_supertree = best_supertree_of_current_iter;
 
-      //update "the_best_supertree" if needed
-      if(best_distance_of_current_iter < the_best_wrf_distance) {
-          the_best_wrf_distance= best_distance_of_current_iter;
-          the_best_supertree= best_supertree_of_current_iter;
-      }else {
+          the_best_wrf_distance_of_current_hill= best_distance_of_current_iter;
+          the_best_supertree_of_current_hill= best_supertree_of_current_iter;
+      }else { // local optimum
 
-          cout << "==============================================================================" << endl;
-          cout << "==============================================================================" << endl;
-          cout << "We have reached a local optimum which has better \(or equal\) WRF score than all its spr-neighbors\n";
-          cout << "The overal CPU time in seconds is: "  << total_time << endl;
+          cout << "----------------------------------------------------------------------------------" << endl;
+          
+          if(ratchet) {
+              cout << "ratchet local opt (re-weighted) reached." << endl;
+          }else {
+              cout << "regular local opt (original weights) reached. ###" << endl;
+          }
+
+          cout << "We have reached a local optimum which has better \(or equal\) WRF distance than all its spr-neighbors\n";
           cout << "The best SuperTree found after " << iteration << " number of iterations is: " << endl;
-          cout << the_best_supertree << endl;
-          cout << "And its quartet distance is " << the_best_wrf_distance << endl;
-          cout << "==============================================================================" << endl;
-          cout << "==============================================================================" << endl;
+          cout << "And its WRF distance is " << the_best_wrf_distance_of_current_hill << endl;
+          cout << "----------------------------------------------------------------------------------" << endl;
+          cout << the_best_supertree_of_current_hill << endl;
+          cout << "----------------------------------------------------------------------------------" << endl;
 
 
-          return 0;
+          
+          if(!ratchet) {  //we are at the end of one ratchet iteration
+
+              cout << "=======================================end of " << ratchet_counter << "-th ratchet iter=========================================" << endl;
+              cout << "========================================================================================================" << endl;
+
+              if(the_best_wrf_distance_of_current_hill < the_best_wrf_distance_seen){ //keep track of best supertree seen so far
+                  the_best_wrf_distance_seen= the_best_wrf_distance_of_current_hill;
+                  the_best_supertree_seen= the_best_supertree_of_current_hill;
+              }                   
+
+              break;  //end of second phase of ONE ratchet iteration
+                             
+          }else { //now perform a regular branch swapping
+              the_best_wrf_distance_of_current_hill= INT_MAX;   //this line so necessary!!
+                                                              //Because we are about to start a completely new hill climbing with new objective function.
+                                                              //without this line, after 2nd ratchet iter, no improvement will be made since the weighted 
+                                                              //distance is always larger than un-weighted and the init ST from previous step is local opt
+                                                              //already.
+
+              ratchet= false;
+              iteration= 0;
+          }
 
       }
 
-  }
+  }//end of one branch swapping search loop
+
+
+  }//end of ratchet search loop
+
+
+  finish_time=clock();
+  float diff ((float)finish_time - (float)start_time);
+  float seconds= diff / CLOCKS_PER_SEC;
+  //cout << "The #of clock ticks of this iteration: " << diff << endl;
+
+
+  cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+  cout << "The best SuperTree found after " << number_of_ratchet_iterations << " number of ratchet iterations is: " << endl;    
+  cout << "And its RF distance is " << the_best_wrf_distance_seen << endl;
+  cout << "the running time is: " << seconds << " sec." << endl;        
+  cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+  cout << the_best_supertree_seen << endl;
+  cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+  cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$+" << endl;
 
   return 0;
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1055,7 +1147,9 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
 
 //this function changes "percentage_to_be_reweighted"%, between 0 and 100, of weights to "new_weight". This is done by
 //iterating through each weight usin regex, and based on some probability change it to "new_weight"
-//NOTE: weiht should be one digit!!!
+//NOTE there are two assumptions: "tree" is weighted already, AND "new_weight" should be only one digit
+//Don't forget "tree" to be the original one with all weights = 1 (z_weighted_input_trees_original file).
+//If you pass a tree which has been already re-weighted, then it is messed up, right? :D  
 string change_branch_lengths(const string &tree, int percentage_to_be_reweighted, int new_weight){
     string re_weighted_tree = tree;
     char weight_char = '0'+new_weight;    //"i +'0'" is for conversion of one digit to char
@@ -1112,7 +1206,7 @@ void write_line_to_File(string s,const char* file_name) {
 
 //given ST and one source tree in input_file, writes "restricted" ST and source tree in file output_file
 //assumes ST and source tree are given in file "z_st_and_source_tree" and writes 'restricted' ST and source tree on "z_pruned_st_and_the_source_tree"
-//too hard wired, I know. I need it just to work now :))
+//it is too hard wired, I know, but should be fine I need it just to work now :))
 void restrict_st_to_source_tree() {
 /*
 For now I am using my python script and terminall commands using system calls, but in the future 
@@ -1189,7 +1283,53 @@ double calculate_total_wrf(const char* input_file){
 
 }
 
+//assumes "input_file" contains ST (FIRST line) and all source trees
+//SAME FUNCTION AS calculate_total_wrf(), BAD SMELL :||
+double calculate_total_rf(const char* input_file){
+  
+  double total_wrf_dist = 0.0;
 
+  //fake argv and argc to be passed to calculate_wrf_btwn_ST_n_source_tree()
+  //note here is how hashrf is called when we have exactly two tree: "hashrf z_pruned_st_and_the_source_tree 2 -w"
+  //Thus:
+  int fake_argc = 3;
+  char* fake_argv[3];
+  fake_argv[0] = "hashrf";
+  fake_argv[1] = "z_pruned_st_and_the_source_tree";
+  fake_argv[2] = "2";
+
+  string supertree;  
+  string tree;
+  int counter = 1;
+  ifstream input;
+  input.open (input_file);
+  while (getline(input, tree)) {
+    if(counter == 1) {  //ST is first tree
+      supertree = tree+"\n";   
+      counter++;
+    }else {
+      string current_tree= tree+"\n";
+      ofstream temp_file;
+      temp_file.open ("z_st_and_source_tree");
+      temp_file << supertree;
+      temp_file << current_tree;
+      temp_file.close();
+      
+      //assumes ST and source tree are given in file "z_st_and_source_tree" and writes
+      //'restricted' ST and source tree on "z_pruned_st_and_the_source_tree"
+      restrict_st_to_source_tree();
+
+      double dist= calculate_wrf_btwn_ST_n_source_tree(fake_argc, fake_argv);
+      //cout << dist << endl;
+      total_wrf_dist += dist;
+
+    }  
+  }
+  input.close();
+
+  return total_wrf_dist;
+
+}
 
 
 
@@ -1328,7 +1468,7 @@ int produce_n_percent_of_spr_neighbors(Node* myTree, int number_of_taxa, int per
 
 
 
-    //The following line deletes the contents of Z_spr_neighbors.txt
+    //The following line deletes the contents of z_spr_neighbours
     const char* neighbors_file = "z_spr_neighbours";
     std::ofstream ofile(neighbors_file, ios_base::trunc);
 
@@ -1416,7 +1556,7 @@ int produce_n_percent_of_spr_neighbors(Node* myTree, int number_of_taxa, int per
 //    cout << "Total Number Of Taxa In Trees: " << number_of_taxa << endl;
 //    cout << "Current Node (Supertree) : " << myTree->str_subtree() << endl;
 //    cout << "#of spr_neighbors of initial supertree = " << number_of_neighbors << endl;
-//    cout << "Trees were written in Z_spr_neighbors.txt in newick format." << endl;
+//    cout << "Trees were written in z_spr_neighbours in newick format." << endl;
 //    cout << "**********************************************************" << endl;
     return number_of_neighbors;
 
