@@ -207,12 +207,14 @@ dfs_compute_hash(
 
 
 
-static void
+static double
 print_rf_short_matrix(
   vector< vector<unsigned short> > &SHORTSIM,
   unsigned options,
   string outfile)
 {
+  double rf_dist= 0.0;
+
   ofstream fout;
   if (outfile != "")
   {
@@ -221,7 +223,7 @@ print_rf_short_matrix(
 
   switch (options) {
   case 0:
-    return;
+    return -1;
   case 1:
     cout << "\nRobinson-Foulds distance (list format):\n";
 
@@ -277,8 +279,12 @@ print_rf_short_matrix(
     }
     break;
   case 3:
-    cout << "\nRobinson-Foulds distance (matrix format):\n";
+    //cout << "\nRobinson-Foulds distance (matrix format):\n";
     if (outfile == "") {
+      rf_dist = (NUM_TAXA-3)-(float((SHORTSIM[0][1] + SHORTSIM[1][0])/2));
+      //cout << "non_w: " << rf_dist << endl;
+      return rf_dist;
+      /*
       for (unsigned int i = 0; i < NUM_TREES; ++i)  {
         for (unsigned int j = 0; j < NUM_TREES; ++j)  {
 //	        for (unsigned int j = i; j < NUM_TREES; ++j)  {
@@ -290,6 +296,7 @@ print_rf_short_matrix(
         cout << endl;
       }
       cout << endl;
+      */
     }
     else {
       for (unsigned int i = 0; i < NUM_TREES; ++i)  {
@@ -412,7 +419,8 @@ print_rf_float_matrix(
 		case 3:
 			//cout << "\nRobinson-Foulds distance (matrix format):\n";
 			if (outfile == "") {
-         wrf_dist =  float((SIM[0][1] + SIM[0][1])/4);
+         wrf_dist =  float((SIM[0][1] + SIM[1][0])/4);
+         //cout << "w_dits " << wrf_dist << endl;
          return wrf_dist;
         /*
 				for (unsigned i = 0; i < NUM_TREES; ++i)  {
@@ -627,11 +635,12 @@ int main(int argc, char** argv) {
             int current_supertree_wrf_distance;
             if(ratchet) {
               current_supertree_wrf_distance = calculate_total_wrf("z_wrf_input");
+              cout << "weightedrf: " << current_supertree_wrf_distance << endl;
             } else {
               current_supertree_wrf_distance = calculate_total_rf("z_wrf_input");
+              cout << "rf: " <<current_supertree_wrf_distance << endl;
             }    
-            //cout << current_supertree_wrf_distance << endl;
-
+            
             ///cout << suptree << "  with score: " << current_supertree_wrf_distance << endl;
             if(current_supertree_wrf_distance < best_distance_of_current_iter) {
                 best_distance_of_current_iter= current_supertree_wrf_distance;
@@ -835,8 +844,14 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
 
     if (NUM_TREES < 2) {cerr << "Fatal error: at least two trees expected.\n"; exit(2);}
 
-    if (weightedSwitch.getValue())
+    //if (weightedSwitch.getValue())
+      //WEIGHTED = true;
+    ///*************************************************************************
+    //FOR SOME REASON above condition does NOT work correctly, and I replace it with this:
+    if(argc == 4)  
       WEIGHTED = true;
+    else if (argc == 3)
+      WEIGHTED = false;
 
     if (printArg.getValue() != "matrix") {
       string printOption = printArg.getValue();
@@ -1103,7 +1118,7 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
   //cout << "    # of unique BIDs = " << uBID << endl;
 
 	if (!WEIGHTED)
-  	print_rf_short_matrix(SHORTSIM, PRINT_OPTIONS, outfilename);
+  	wrf_distance = print_rf_short_matrix(SHORTSIM, PRINT_OPTIONS, outfilename);
   else 
   	wrf_distance = print_rf_float_matrix(FLOATSIM, PRINT_OPTIONS, outfilename);
 
@@ -1287,7 +1302,7 @@ double calculate_total_wrf(const char* input_file){
 //SAME FUNCTION AS calculate_total_wrf(), BAD SMELL :||
 double calculate_total_rf(const char* input_file){
   
-  double total_wrf_dist = 0.0;
+  double total_rf_dist = 0.0;
 
   //fake argv and argc to be passed to calculate_wrf_btwn_ST_n_source_tree()
   //note here is how hashrf is called when we have exactly two tree: "hashrf z_pruned_st_and_the_source_tree 2 -w"
@@ -1321,13 +1336,13 @@ double calculate_total_rf(const char* input_file){
 
       double dist= calculate_wrf_btwn_ST_n_source_tree(fake_argc, fake_argv);
       //cout << dist << endl;
-      total_wrf_dist += dist;
+      total_rf_dist += dist;
 
     }  
   }
   input.close();
 
-  return total_wrf_dist;
+  return total_rf_dist;
 
 }
 
