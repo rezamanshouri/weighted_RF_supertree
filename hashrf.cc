@@ -26,7 +26,7 @@ set<string> find_non_common_taxa_set(const string &supertree, const string &sour
 //void restrict_supertree_to_source_tree(NEWICKNODE *node, const set<string> non_shared_taxa);
 string change_branch_lengths(const string &tree, int percentage_to_be_reweighted, int new_weight);
 void write_line_to_File(string s,const char* file_name);
-double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv);
+double calculate_rf_btwn_ST_n_source_tree(int argc, char** argv);
 void restrict_st_to_source_tree();
 double calculate_total_wrf(const char* input_file);
 
@@ -81,22 +81,22 @@ extern "C" {
 
 using namespace std;
 
-#define LEFT               								0
-#define RIGHT              								1
-#define ROOT               								2
-#define LABEL_WIDTH        								3
+#define LEFT                              0
+#define RIGHT                             1
+#define ROOT                              2
+#define LABEL_WIDTH                       3
 
 // Set a random number for m1 (= Initial size of hash table)
 // m1 is the closest value to (t*n)+(t*n*HASHTABLE_FACTOR)
-#define HASHTABLE_FACTOR    							0.2
+#define HASHTABLE_FACTOR                  0.2
 
 // the c value of m2 > c*t*n in the paper
-static unsigned int C						    			= 1000; 
+static unsigned int C                     = 1000; 
 static unsigned NUM_TREES                 = 0; // number of trees
-static unsigned NUM_TAXA                	= 0; // number of taxa
+static unsigned NUM_TAXA                  = 0; // number of taxa
 static bool WEIGHTED                      = false; // unweighted
-static unsigned PRINT_OPTIONS							= 3; // matrix
-static int32 NEWSEED											= 0; // for storing user specified seed value 
+static unsigned PRINT_OPTIONS             = 3; // matrix
+static int32 NEWSEED                      = 0; // for storing user specified seed value 
 
 #define __HALF_MAX_SIGNED(type) ((type)1 << (sizeof(type)*8-2))
 #define __MAX_SIGNED(type) (__HALF_MAX_SIGNED(type) - 1 + __HALF_MAX_SIGNED(type))
@@ -172,29 +172,29 @@ dfs_compute_hash(
     unsigned long long temphv1=0;
     unsigned long long temphv2=0;
    
-    for (int i=0; i<startNode->Nchildren; ++i) {    	
-    	unsigned long long t1 = temphv1;
-    	unsigned long long t2 = temphv2;
-    	unsigned long long h1 = startNode->child[i]->hv1;
-    	unsigned long long h2 = startNode->child[i]->hv2;
+    for (int i=0; i<startNode->Nchildren; ++i) {      
+      unsigned long long t1 = temphv1;
+      unsigned long long t2 = temphv2;
+      unsigned long long h1 = startNode->child[i]->hv1;
+      unsigned long long h2 = startNode->child[i]->hv2;
 
-    	if ( add_of(temphv1, t1, h1) ) {
-    		cout << "ERROR: ullong add overflow!!!\n"; 
-    		cout << "t1=" << t1 << " h1=" << h1 << " t1+h1=" << t1+h1 << endl;
-    		exit(0);
-    	}
-    	if ( add_of(temphv2, t2, h2) ) {
-    		cout << "ERROR: ullong add overflow!!!\n"; 
-    		cout << "t2=" << t2 << " h2=" << h2 << " t2+h2=" << t2+h2 << endl;
-    		exit(0);
-    	}
-	  }
-		
-		// Check overflow
-		unsigned long long temp1 = temphv1 % m1;
-		unsigned long long temp2 = temphv2 % m2;
-    	startNode->hv1 = temp1;
-    	startNode->hv2 = temp2;
+      if ( add_of(temphv1, t1, h1) ) {
+        cout << "ERROR: ullong add overflow!!!\n"; 
+        cout << "t1=" << t1 << " h1=" << h1 << " t1+h1=" << t1+h1 << endl;
+        exit(0);
+      }
+      if ( add_of(temphv2, t2, h2) ) {
+        cout << "ERROR: ullong add overflow!!!\n"; 
+        cout << "t2=" << t2 << " h2=" << h2 << " t2+h2=" << t2+h2 << endl;
+        exit(0);
+      }
+    }
+    
+    // Check overflow
+    unsigned long long temp1 = temphv1 % m1;
+    unsigned long long temp2 = temphv2 % m2;
+      startNode->hv1 = temp1;
+      startNode->hv2 = temp2;
 
     // Store bitstrings in hash table
     if (numBitstr < NUM_TAXA-2) {
@@ -205,12 +205,14 @@ dfs_compute_hash(
 
 
 
-static void
+static double
 print_rf_short_matrix(
   vector< vector<unsigned short> > &SHORTSIM,
   unsigned options,
   string outfile)
 {
+  double rf_dist= 0.0;
+
   ofstream fout;
   if (outfile != "")
   {
@@ -219,7 +221,7 @@ print_rf_short_matrix(
 
   switch (options) {
   case 0:
-    return;
+    return -1;
   case 1:
     cout << "\nRobinson-Foulds distance (list format):\n";
 
@@ -275,11 +277,15 @@ print_rf_short_matrix(
     }
     break;
   case 3:
-    cout << "\nRobinson-Foulds distance (matrix format):\n";
+    //cout << "\nRobinson-Foulds distance (matrix format):\n";
     if (outfile == "") {
+      rf_dist = (NUM_TAXA-3)-(float((SHORTSIM[0][1] + SHORTSIM[1][0])/2));
+      //cout << "non_w: " << rf_dist << endl;
+      return rf_dist;
+      /*
       for (unsigned int i = 0; i < NUM_TREES; ++i)  {
         for (unsigned int j = 0; j < NUM_TREES; ++j)  {
-//	        for (unsigned int j = i; j < NUM_TREES; ++j)  {
+//          for (unsigned int j = i; j < NUM_TREES; ++j)  {
           if (i == j)
             cout << "0" << ' ';
           else
@@ -288,6 +294,7 @@ print_rf_short_matrix(
         cout << endl;
       }
       cout << endl;
+      */
     }
     else {
       for (unsigned int i = 0; i < NUM_TREES; ++i)  {
@@ -303,20 +310,20 @@ print_rf_short_matrix(
     }
     break;
   case 4:
-  	if (outfile == "") { 
-	    for (size_t i = 0; i < NUM_TREES; ++i) {		
-		    for	(size_t j = 0; j < i; ++j)
-		      std::cout << (NUM_TAXA-3)-(float((SHORTSIM[i][j] + SHORTSIM[j][i])/2)) << " ";
-		    std::cout << "\n";
-		 	}		
-		}
-		else {
-			for (size_t i = 0; i < NUM_TREES; ++i) {		
-		    for	(size_t j = 0; j < i; ++j)
-		      fout << (NUM_TAXA-3)-(float((SHORTSIM[i][j] + SHORTSIM[j][i])/2)) << " ";
-		    	fout << "\n";
-		 	}	
-		}
+    if (outfile == "") { 
+      for (size_t i = 0; i < NUM_TREES; ++i) {    
+        for (size_t j = 0; j < i; ++j)
+          std::cout << (NUM_TAXA-3)-(float((SHORTSIM[i][j] + SHORTSIM[j][i])/2)) << " ";
+        std::cout << "\n";
+      }   
+    }
+    else {
+      for (size_t i = 0; i < NUM_TREES; ++i) {    
+        for (size_t j = 0; j < i; ++j)
+          fout << (NUM_TAXA-3)-(float((SHORTSIM[i][j] + SHORTSIM[j][i])/2)) << " ";
+          fout << "\n";
+      } 
+    }
     break;
   }
 
@@ -328,127 +335,127 @@ print_rf_short_matrix(
 //note I ALWAYS have exactly two trees: ST and one of source trees  
 static double
 print_rf_float_matrix(
-	vector< vector<float> > &SIM, 
-	unsigned options,
-	string outfile)
+  vector< vector<float> > &SIM, 
+  unsigned options,
+  string outfile)
 {
   double wrf_dist= 0.0;
 
-	ofstream fout;
-	if (outfile != "") {
-		fout.open(outfile.c_str());
-	}
-	
-	switch (options) {
-		case 0: 
-			//return;
+  ofstream fout;
+  if (outfile != "") {
+    fout.open(outfile.c_str());
+  }
+  
+  switch (options) {
+    case 0: 
+      //return;
       return -1;
       cout << "something went wrong" << endl;   
-		case 1: 
-			cout << "\nRobinson-Foulds distance (list format):\n";
-			
-				if (outfile == "") {
-					for (unsigned i = 0; i < NUM_TREES; ++i) {          
-						for (unsigned j = 0; j < NUM_TREES; ++j) {        	
-							if (i == j) 
-								cout << "<" << i << "," << j << "> " << 0 << endl;
-							else {
-								if (!WEIGHTED)
-									cout << "<" << i << "," << j << "> " << (NUM_TAXA-3)-(float((SIM[i][j] + SIM[j][i])/2)) << endl;
-								else 
-									cout << "<" << i << "," << j << "> " << float((SIM[i][j] + SIM[j][i])/4) << endl;
-							}
-						}
-					}
-				}
-				else {
-					for (unsigned i = 0; i < NUM_TREES; ++i) {          
-						for (unsigned j = 0; j < NUM_TREES; ++j) {        	
-							if (i == j) 
-								fout << "<" << i << "," << j << "> " << 0 << endl;
-							else {
-								if (!WEIGHTED) 
-									fout << "<" << i << "," << j << "> " << (NUM_TAXA-3)-(float((SIM[i][j] + SIM[j][i])/2)) << endl;
-								else 
-									fout << "<" << i << "," << j << "> " << float((SIM[i][j] + SIM[j][i])/4) << endl;
-							}
-						}
-					}
-				}
-			
-			break;      
-		case 2:
-			cout << "\nRobinson-Foulds distance (rate):\n"; 
-			if (WEIGHTED) {
-					cout << "Fatal error: RF rate is only for unweighted RF distance.\n";
-					exit(0);
-			}      
-			
-			if (outfile == "") {
-				for (unsigned i = 0; i < NUM_TREES; ++i) {
-					for (unsigned j = 0; j < NUM_TREES; ++j) {              
-						cout << "<" << i << "," << j << "> ";
-						if (i==j) 
-							cout << 0 << endl;
-						else 
-							cout << (float) ((NUM_TAXA-3)-((SIM[i][j] + SIM[j][i])/2)) / (NUM_TAXA-3) * 100 << endl;
-					}
-				}
-			}
-			else {
-				for (unsigned i = 0; i < NUM_TREES; ++i) {
-					for (unsigned j = 0; j < NUM_TREES; ++j) {              
-						fout << "<" << i << "," << j << "> ";
-						if (i==j) 
-							fout << 0 << endl;
-						else      
-							fout << (float) ((NUM_TAXA-3)-((SIM[i][j] + SIM[j][i])/2)) / (NUM_TAXA-3) * 100 << endl;
-					}
-				}
-			}
-			break;      
-		case 3:
-			//cout << "\nRobinson-Foulds distance (matrix format):\n";
-			if (outfile == "") {
+    case 1: 
+      cout << "\nRobinson-Foulds distance (list format):\n";
+      
+        if (outfile == "") {
+          for (unsigned i = 0; i < NUM_TREES; ++i) {          
+            for (unsigned j = 0; j < NUM_TREES; ++j) {          
+              if (i == j) 
+                cout << "<" << i << "," << j << "> " << 0 << endl;
+              else {
+                if (!WEIGHTED)
+                  cout << "<" << i << "," << j << "> " << (NUM_TAXA-3)-(float((SIM[i][j] + SIM[j][i])/2)) << endl;
+                else 
+                  cout << "<" << i << "," << j << "> " << float((SIM[i][j] + SIM[j][i])/4) << endl;
+              }
+            }
+          }
+        }
+        else {
+          for (unsigned i = 0; i < NUM_TREES; ++i) {          
+            for (unsigned j = 0; j < NUM_TREES; ++j) {          
+              if (i == j) 
+                fout << "<" << i << "," << j << "> " << 0 << endl;
+              else {
+                if (!WEIGHTED) 
+                  fout << "<" << i << "," << j << "> " << (NUM_TAXA-3)-(float((SIM[i][j] + SIM[j][i])/2)) << endl;
+                else 
+                  fout << "<" << i << "," << j << "> " << float((SIM[i][j] + SIM[j][i])/4) << endl;
+              }
+            }
+          }
+        }
+      
+      break;      
+    case 2:
+      cout << "\nRobinson-Foulds distance (rate):\n"; 
+      if (WEIGHTED) {
+          cout << "Fatal error: RF rate is only for unweighted RF distance.\n";
+          exit(0);
+      }      
+      
+      if (outfile == "") {
+        for (unsigned i = 0; i < NUM_TREES; ++i) {
+          for (unsigned j = 0; j < NUM_TREES; ++j) {              
+            cout << "<" << i << "," << j << "> ";
+            if (i==j) 
+              cout << 0 << endl;
+            else 
+              cout << (float) ((NUM_TAXA-3)-((SIM[i][j] + SIM[j][i])/2)) / (NUM_TAXA-3) * 100 << endl;
+          }
+        }
+      }
+      else {
+        for (unsigned i = 0; i < NUM_TREES; ++i) {
+          for (unsigned j = 0; j < NUM_TREES; ++j) {              
+            fout << "<" << i << "," << j << "> ";
+            if (i==j) 
+              fout << 0 << endl;
+            else      
+              fout << (float) ((NUM_TAXA-3)-((SIM[i][j] + SIM[j][i])/2)) / (NUM_TAXA-3) * 100 << endl;
+          }
+        }
+      }
+      break;      
+    case 3:
+      //cout << "\nRobinson-Foulds distance (matrix format):\n";
+      if (outfile == "") {
          wrf_dist =  float((SIM[0][1] + SIM[0][1])/4);
          return wrf_dist;
         /*
-				for (unsigned i = 0; i < NUM_TREES; ++i)  {
-					for (unsigned j = 0; j < NUM_TREES; ++j)  {
-//	        for (unsigned j = i; j < NUM_TREES; ++j)  {
-						if (i == j)
-							cout << " 0 " << ' ';
-						else
-							if (WEIGHTED)
-								cout << float((SIM[i][j] + SIM[j][i])/4) << ' ';
-							else 
-								cout << (NUM_TAXA-3)-(float((SIM[i][j] + SIM[j][i])/2)) << ' ';
-					}
-					cout << endl;
-				}
-				cout << endl;
+        for (unsigned i = 0; i < NUM_TREES; ++i)  {
+          for (unsigned j = 0; j < NUM_TREES; ++j)  {
+//          for (unsigned j = i; j < NUM_TREES; ++j)  {
+            if (i == j)
+              cout << " 0 " << ' ';
+            else
+              if (WEIGHTED)
+                cout << float((SIM[i][j] + SIM[j][i])/4) << ' ';
+              else 
+                cout << (NUM_TAXA-3)-(float((SIM[i][j] + SIM[j][i])/2)) << ' ';
+          }
+          cout << endl;
+        }
+        cout << endl;
         */
-			}
-			else {
-				for (unsigned i = 0; i < NUM_TREES; ++i)  {
-					for (unsigned j = 0; j < NUM_TREES; ++j)  {
-						if (i == j)
-							fout << " 0 " << ' ';
-						else
-							if (WEIGHTED)
-								fout << float((SIM[i][j] + SIM[j][i])/4) << ' ';
-							else 
-								fout << (NUM_TAXA-3)-(float((SIM[i][j] + SIM[j][i])/2)) << ' ';
-					}
-					fout << endl;
-				}
-				fout << endl;
-			}
-			break;    
-	}
-	
-	if (outfile != "") 
-		fout.close();	
+      }
+      else {
+        for (unsigned i = 0; i < NUM_TREES; ++i)  {
+          for (unsigned j = 0; j < NUM_TREES; ++j)  {
+            if (i == j)
+              fout << " 0 " << ' ';
+            else
+              if (WEIGHTED)
+                fout << float((SIM[i][j] + SIM[j][i])/4) << ' ';
+              else 
+                fout << (NUM_TAXA-3)-(float((SIM[i][j] + SIM[j][i])/2)) << ' ';
+          }
+          fout << endl;
+        }
+        fout << endl;
+      }
+      break;    
+  }
+  
+  if (outfile != "") 
+    fout.close(); 
 }
 
 
@@ -641,7 +648,7 @@ int main(int argc, char** argv) {
 
 //the following function was main() in original hashRF
 //i create fake argv for it in main
-double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
+double calculate_rf_btwn_ST_n_source_tree(int argc, char** argv)
 {
   double wrf_distance= 0.0;
 
@@ -653,7 +660,7 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
   try {
 
     // Define the command line object.
-    string 	helpMsg  = "HashRF\n";
+    string  helpMsg  = "HashRF\n";
 
     helpMsg += "Input file: \n";
     helpMsg += "   The current version of HashRF only supports the Newick format.\n";
@@ -678,7 +685,7 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
 
     helpMsg += "Specify c value: \n";   
     helpMsg += "   -c <rate>, specify c value (default: 1000) \n";
-    			
+          
     helpMsg += "Examples: \n";
     helpMsg += "  hashf foo.tre 1000\n";
     helpMsg += "  hashf bar.tre 1000 -w\n";
@@ -709,10 +716,10 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
     TCLAP::ValueArg<string> outfileArg("o", "outfile", "Output file name", false, "", "Output file name");
     cmd.add( outfileArg );
     
- 		// debug
-		TCLAP::ValueArg<int> seedArg("s", "seedvalue", "user specified seed value", false, 1000, "user specified seed value");
+    // debug
+    TCLAP::ValueArg<int> seedArg("s", "seedvalue", "user specified seed value", false, 1000, "user specified seed value");
     cmd.add( seedArg );
-				
+        
     cmd.parse( argc, argv );
 
     NUM_TREES = numtreeArg.getValue();
@@ -736,8 +743,15 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
 
     if (NUM_TREES < 2) {cerr << "Fatal error: at least two trees expected.\n"; exit(2);}
 
-    if (weightedSwitch.getValue())
+    //if (weightedSwitch.getValue())
+      //WEIGHTED = true;
+    ///*************************************************************************
+    //FOR SOME REASON above condition does NOT work correctly, and I replace it with this:
+    if(argc == 4)  
       WEIGHTED = true;
+    else if (argc == 3)
+      WEIGHTED = false;
+    
 
     if (printArg.getValue() != "matrix") {
       string printOption = printArg.getValue();
@@ -800,7 +814,7 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
   /*****************************************************/
   LabelMap lm;
 
-  try	{
+  try {
     GetTaxaLabels(newickTree->root, lm);
   }
   catch (LabelMap::AlreadyPushedEx ex) { 
@@ -824,10 +838,10 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
   unsigned long long M1=0;
   unsigned long long M2=0;
 
-	if (NEWSEED != 1000)
-  	vvec_hashrf.uhashfunc_init(NUM_TREES, NUM_TAXA, C, NEWSEED);
+  if (NEWSEED != 1000)
+    vvec_hashrf.uhashfunc_init(NUM_TREES, NUM_TAXA, C, NEWSEED);
   else
-	 	vvec_hashrf.uhashfunc_init(NUM_TREES, NUM_TAXA, C);
+    vvec_hashrf.uhashfunc_init(NUM_TREES, NUM_TAXA, C);
  
   M1 = vvec_hashrf._HF.getM1();
   M2 = vvec_hashrf._HF.getM2();
@@ -882,33 +896,33 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
   else // for weighted RF
     FLOATSIM = FLOAT_MATRIX_T (NUM_TREES, vector<float>(NUM_TREES,0.0));
        
-	unsigned long uBID = 0;
-	
-	if (!WEIGHTED) {    // unweighted
+  unsigned long uBID = 0;
+  
+  if (!WEIGHTED) {    // unweighted
     for (unsigned int hti=0; hti<vvec_hashrf._hashtab2.size(); ++hti) {
       unsigned int sizeVec = vvec_hashrf._hashtab2[hti].size();
-			
-			if (sizeVec) {
+      
+      if (sizeVec) {
 
-      	uBID += sizeVec;
-      	
-      	if (!bUbid) {
-  	      for (unsigned int i=0; i<sizeVec; ++i) {
-  	        unsigned int sizeTreeIdx = vvec_hashrf._hashtab2[hti][i]._vec_treeidx.size();
+        uBID += sizeVec;
+        
+        if (!bUbid) {
+          for (unsigned int i=0; i<sizeVec; ++i) {
+            unsigned int sizeTreeIdx = vvec_hashrf._hashtab2[hti][i]._vec_treeidx.size();
    
-  	        if (sizeTreeIdx > 1) {
-  	          for (unsigned int j=0; j<sizeTreeIdx; ++j) {
-  	            for (unsigned int k=0; k<sizeTreeIdx; ++k) {
-  	              if (j == k) continue;
-  	              else {
-  	                SHORTSIM[vvec_hashrf._hashtab2[hti][i]._vec_treeidx[j]][vvec_hashrf._hashtab2[hti][i]._vec_treeidx[k]] += 1;
-  	              }
-  	            }
-  	          }
-  	        }
-  	      }
-	      } //if
-	    }
+            if (sizeTreeIdx > 1) {
+              for (unsigned int j=0; j<sizeTreeIdx; ++j) {
+                for (unsigned int k=0; k<sizeTreeIdx; ++k) {
+                  if (j == k) continue;
+                  else {
+                    SHORTSIM[vvec_hashrf._hashtab2[hti][i]._vec_treeidx[j]][vvec_hashrf._hashtab2[hti][i]._vec_treeidx[k]] += 1;
+                  }
+                }
+              }
+            }
+          }
+        } //if
+      }
     }
   } 
   //---------------------------------------- WEIGHTED --------------------------------------------  
@@ -1003,10 +1017,10 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
 
   //cout << "    # of unique BIDs = " << uBID << endl;
 
-	if (!WEIGHTED)
-  	print_rf_short_matrix(SHORTSIM, PRINT_OPTIONS, outfilename);
+  if (!WEIGHTED)
+    wrf_distance = print_rf_short_matrix(SHORTSIM, PRINT_OPTIONS, outfilename);
   else 
-  	wrf_distance = print_rf_float_matrix(FLOATSIM, PRINT_OPTIONS, outfilename);
+    wrf_distance = print_rf_float_matrix(FLOATSIM, PRINT_OPTIONS, outfilename);
 
 
   /*****************************************************/
@@ -1117,19 +1131,19 @@ you can implemet it like:
 */
 
 
-	//the python program, "prune_tree.py", takes file "z_st_and_source_tree" containing ST and one source tree,
-	// and prunes ST to taxa set of source tree, AND adds branch lengths 1 to all edges in newick format, AND
-	//writes them into file "z_pruned_st_and_the_source_tree".
-	std::string command1 = "python prune_tree.py z_st_and_source_tree";
-	system(command1.c_str());
-	//there are some unnecessary branch lengths which should be removed:
-	//1- the branch lengths for interlan edges are like "..(t1,t2)1:1". Idk what is the first "1" for. I remove it.
-	string command2 = "perl -pe 's/(?<=\\))1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
-	system(command2.c_str());
-	//2- having branch length for leaves in this context, i.e. weighted RF distance is unnecessary.
-	//thus, anything in newick format which is of the form "(some_taxon:1,...." should be removed. We keep only
-	//branch lengths after afer closing parenthesis.
-	string command3 = "perl -pe 's/(?<=[a-zA-Z0-9]):1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
+  //the python program, "prune_tree.py", takes file "z_st_and_source_tree" containing ST and one source tree,
+  // and prunes ST to taxa set of source tree, AND adds branch lengths 1 to all edges in newick format, AND
+  //writes them into file "z_pruned_st_and_the_source_tree".
+  std::string command1 = "python prune_tree.py z_st_and_source_tree";
+  system(command1.c_str());
+  //there are some unnecessary branch lengths which should be removed:
+  //1- the branch lengths for interlan edges are like "..(t1,t2)1:1". Idk what is the first "1" for. I remove it.
+  string command2 = "perl -pe 's/(?<=\\))1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
+  system(command2.c_str());
+  //2- having branch length for leaves in this context, i.e. weighted RF distance is unnecessary.
+  //thus, anything in newick format which is of the form "(some_taxon:1,...." should be removed. We keep only
+  //branch lengths after afer closing parenthesis.
+  string command3 = "perl -pe 's/(?<=[a-zA-Z0-9]):1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
   system(command3.c_str());
 }
 
@@ -1139,15 +1153,15 @@ double calculate_total_wrf(const char* input_file){
   
   double total_wrf_dist = 0.0;
 
-  //fake argv and argc to be passed to calculate_wrf_btwn_ST_n_source_tree()
+  //fake argv and argc to be passed to calculate_rf_btwn_ST_n_source_tree()
   //note here is how hashrf is called when we have exactly two tree: "hashrf z_pruned_st_and_the_source_tree 2 -w"
   //Thus:
-  int fake_argc = 4;
-  char* fake_argv[4];
+  int fake_argc = 3;
+  char* fake_argv[3];
   fake_argv[0] = "hashrf";
   fake_argv[1] = "z_pruned_st_and_the_source_tree";
   fake_argv[2] = "2";
-  fake_argv[3] = "-w";
+
 
   string supertree;  
   string tree;
@@ -1170,7 +1184,7 @@ double calculate_total_wrf(const char* input_file){
       //'restricted' ST and source tree on "z_pruned_st_and_the_source_tree"
       restrict_st_to_source_tree();
 
-      double dist= calculate_wrf_btwn_ST_n_source_tree(fake_argc, fake_argv);
+      double dist= calculate_rf_btwn_ST_n_source_tree(fake_argc, fake_argv);
       //cout << dist << endl;
       total_wrf_dist += dist;
 
