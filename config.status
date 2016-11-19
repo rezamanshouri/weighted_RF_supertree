@@ -437,7 +437,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/home/reza/Desktop/1/weighted_RF_supertree'
+ac_pwd='/home/reza/Dropbox/Texas AM/Ubuntu_Programs/supertree_software/hashrf_reza_version/weighted_RF_supertree'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 MKDIR_P='/bin/mkdir -p'
@@ -643,7 +643,7 @@ S["CXXFLAGS"]="-g -O2"
 S["CXX"]="g++"
 S["am__untar"]="${AMTAR} xf -"
 S["am__tar"]="${AMTAR} chof - \"$$tardir\""
-S["AMTAR"]="${SHELL} /home/reza/Desktop/1/weighted_RF_supertree/missing --run tar"
+S["AMTAR"]="tar"
 S["am__leading_dot"]="."
 S["SET_MAKE"]=""
 S["AWK"]="gawk"
@@ -651,12 +651,12 @@ S["mkdir_p"]="/bin/mkdir -p"
 S["MKDIR_P"]="/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]=""
-S["install_sh"]="$(SHELL) /home/reza/Desktop/1/weighted_RF_supertree/install-sh"
-S["MAKEINFO"]="${SHELL} /home/reza/Desktop/1/weighted_RF_supertree/missing --run makeinfo"
-S["AUTOHEADER"]="${SHELL} /home/reza/Desktop/1/weighted_RF_supertree/missing --run autoheader"
-S["AUTOMAKE"]="${SHELL} /home/reza/Desktop/1/weighted_RF_supertree/missing --run automake-1.10"
-S["AUTOCONF"]="${SHELL} /home/reza/Desktop/1/weighted_RF_supertree/missing --run autoconf"
-S["ACLOCAL"]="${SHELL} /home/reza/Desktop/1/weighted_RF_supertree/missing --run aclocal-1.10"
+S["install_sh"]="$(SHELL) /home/reza/Dropbox/Texas AM/Ubuntu_Programs/supertree_software/hashrf_reza_version/weighted_RF_supertree/install-sh"
+S["MAKEINFO"]="makeinfo"
+S["AUTOHEADER"]="autoheader"
+S["AUTOMAKE"]="automake-1.10"
+S["AUTOCONF"]="autoconf"
+S["ACLOCAL"]="aclocal-1.10"
 S["VERSION"]="6.0.0"
 S["PACKAGE"]="hashrf"
 S["CYGPATH_W"]="echo"
