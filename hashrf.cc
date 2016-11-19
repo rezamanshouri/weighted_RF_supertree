@@ -20,16 +20,7 @@
 #include <set>
 #include <string>
 
-void split(const string &s, char delim, vector<string> &elems);
-vector<string> split(const string &s, char delim);
-set<string> find_non_common_taxa_set(const string &supertree, const string &source_tree);
-//void restrict_supertree_to_source_tree(NEWICKNODE *node, const set<string> non_shared_taxa);
-string change_branch_lengths(const string &tree, int percentage_to_be_reweighted, int new_weight);
-void write_line_to_File(string s,const char* file_name);
-double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv);
-void restrict_st_to_source_tree();
-double calculate_total_wrf(const char* input_file);
-double calculate_total_rf(const char* input_file);
+
 
 
 //************ADDED FOR SPR neihborhood************>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -58,15 +49,34 @@ double calculate_total_rf(const char* input_file);
 #include "lgt.h"
 #include "sparse_counts.h"
 #include "node_glom.h"
-
-
 #include <regex>
+
+
+void split(const string &s, char delim, vector<string> &elems);
+vector<string> split(const string &s, char delim);
+set<string> find_non_common_taxa_set(const string &supertree, const string &source_tree);
+string change_branch_lengths(const string &tree, int percentage_to_be_reweighted, int new_weight);
+void write_line_to_File(string s,const char* file_name);
+double calculate_rf_btwn_ST_n_source_tree(int argc, char** argv);
+double calculate_total_rf(string source_trees[], set<string> non_shared_taxa[], Node& supertree, bool is_weighted);
+
+
+
 void writeToFile(string s,const char* file_name);
 void adjustTree(Node* tree);
 int produce_all_spr_neighbors(Node* tree, int number_of_taxa);
 int produce_n_percent_of_spr_neighbors(Node* myTree, int number_of_taxa, int percentage);
 int number_of_taxa(string const tree);
 void total_number_of_nodes(Node* node, int& total_nodes);
+
+//////////////////Added for restrict_st()/////////////////////////////////////////
+void split(const string &s, char delim, vector<string> &elems);
+vector<string> split(const string &s, char delim);
+set<string> find_non_common_taxa_set(const string &supertree, const string &source_tree);
+void restrict_supertree(Node& supertree, set<string>& non_shared_taxon_set);
+void find_prenum_of_node_to_be_removed(Node& tree, string taxon, int& prenum_of_node_to_be_removed);
+std::string ReplaceAll(std::string str, const std::string& from, const std::string& to);
+static unsigned int NUMBER_OF_SOURCE_TREES_ZZ;
 
 ////////////////////////REZA////////////////////////////////////////////<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ////////////////////////////////////////////////////////////////////        
@@ -469,35 +479,18 @@ print_rf_float_matrix(
 
 
 
-//////////////////////////////////////REZA///////////////////////////////main()
-//////////////////////////////////////////////////////>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-int main(int argc, char** argv) {
-  srand((unsigned)time(NULL));
+/////////////////////////////     main()     /////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 
   //Remember each ratchtet iteration has two separate hill-climbing seraches
-  //1- on weighted characters: for this step, I use "hashrf z_weighted_input_trees_reweighted 0 -w" command, where z_weighted_input_trees file is generated below and modified in each iteration 
-  //2- on unweighted characters: for this step, I use "hashrf argv[1] 0" command
+  //1- on weighted characters: for this step, I use "hashrf z_pruned_st_and_source_tree 0 -w" command, where z_pruned_st_and_source_tree file contains "weighted" (pruned) ST and one source tree
+  //2- on unweighted characters: for this step, I use "hashrf z_pruned_st_and_source_tree 0", where z_pruned_st_and_source_tree file contains "un_weighted" (pruned) ST and one source tree
   
-  //Note for varaiable names, I used "..._wrf_dist_..." which is sometimes actually wrf_dist and sometimes rf_dist
-  //based on whether we are in what hill_climbing phase of each ratchet iter. This is fine since
-  //the way both are done is the same. However, the_best_supertree_seen is updated only when we are in
-  //unweighted hill-climbing phase of the ratchet iter and found a better rf-dist.
+  //Note for varaiable names, I used "..._rf_dist_..." which is sometimes actually weighted rf_dist if "ratchet==true"
+//////////////////////////////////////////////////////////////////////////////////
 
-
-  //file "z_weighted_input_trees_reweighted" is created from "z_weighted_input_trees_original" by calling 
-  // change_branch_lengths() on each line of it and copying the output to "z_weighted_input_trees_reweighted"
-
-  //add weight 1 to all internal edges: using perl replace all ")" with ""):1" except last one i.e. "):1;"
-  string argv1(argv[1]);
-  string command1 = "perl -pe 's/\\)/):1/g' " + argv1 + " > z_weighted_input_trees_original";
-  system(command1.c_str());
-  string command2 = "perl -pe 's/:1;/;/g' z_weighted_input_trees_original > z_temp; cat z_temp> z_weighted_input_trees_original; rm z_temp";
-  system(command2.c_str());
-  
-  //Note we don't need to "weight" ST since when calling restrict_st_to_source_tree(), it gets weighted.
-
-
-
+int main(int argc, char** argv) {
+  srand((unsigned)time(NULL));
 
   cout << "Please enter the pre-specified number of 'ratchet' iterations: " << endl;
   //pre-specified number of iterations if it didn't stop after this number of iterations
@@ -516,6 +509,8 @@ int main(int argc, char** argv) {
   int neighborhood_percentage;
   cin >> neighborhood_percentage; 
 
+  cout << "********************************************************************" << endl;
+
 
   string init_supertree;
   ifstream init_sup("initial_supertree");
@@ -529,7 +524,47 @@ int main(int argc, char** argv) {
       return -1;
   }
 
-  cout << "********************************************************************" << endl;
+  int number_of_source_trees = 0;
+  ifstream myfile1(argv[1]);
+  string l0;
+  while (std::getline(myfile1, l0))
+  {
+     number_of_source_trees ++;
+  }
+  myfile1.close();
+
+  ::NUMBER_OF_SOURCE_TREES_ZZ = number_of_source_trees;
+
+  string source_trees[number_of_source_trees];
+  int cntr0= 0;
+  ifstream myfile2(argv[1]);
+  string l1;  //hopefully size of trees are not larger than str.max_size()  
+  while (std::getline(myfile2, l1))
+  {
+     source_trees[cntr0] = l1;
+     cntr0 ++;
+  }
+  myfile2.close();
+
+  //add weight 1 to all internal edges: replace all ")" with ""):1" except last one i.e. "):1;"
+  string weighted_source_trees[number_of_source_trees];
+  int cntr1 = 0;
+  for (const string & t : source_trees)
+  {
+     string temp = ReplaceAll(t, string(")"), string("):1"));
+     temp = ReplaceAll(temp, string(":1;"), string(";"));
+     weighted_source_trees[cntr1] = temp;
+     cntr1 ++;
+  }
+
+  //non-shared taxa between each source tree and any supertree is the same in any iteration.
+  //thus, I calculate it once here and just use it.
+  set<string> non_shared_taxa_arr[number_of_source_trees];
+  int cntr2 = 0;
+  for (string t : source_trees) {
+      non_shared_taxa_arr[cntr2] = find_non_common_taxa_set(init_supertree, t);
+      cntr2 ++;
+  }
 
 
 
@@ -540,7 +575,7 @@ int main(int argc, char** argv) {
 
   //just to keep track of best ST seen throughout the algorithm
   string the_best_supertree_seen = init_supertree;
-  int the_best_wrf_distance_seen = INT_MAX;
+  int the_best_rf_distance_seen = INT_MAX;
 
 
   ////////////////////////////////////////////////
@@ -551,29 +586,20 @@ int main(int argc, char** argv) {
   for(int ratchet_counter = 1; ratchet_counter < number_of_ratchet_iterations+1; ratchet_counter++) {
 
       bool ratchet= true; //when true, use re-weighted input trees; when false, use unweighted trees.
-
-      const char* source_trees_for_this_search;
-      if(ratchet) {
-        ofstream reweighted_input_trees;
-        reweighted_input_trees.open("z_weighted_input_trees_reweighted");
-        ifstream original_weighted_trees;
-        original_weighted_trees.open("z_weighted_input_trees_original");
-        string current_tree;
-        while(getline(original_weighted_trees, current_tree)) {
-          current_tree = change_branch_lengths(current_tree, percentage_of_clades_to_be_reweighted, ratchet_weight) + "\n";
-          reweighted_input_trees << current_tree;          
+      string re_weighted_source_trees[number_of_source_trees];   //will contain re-weighted source trees in ratchet phases
+      if(ratchet) { //first clear previous data
+        for (int i = 0; i<number_of_source_trees; i++) {
+          re_weighted_source_trees[i].clear();
         }
-        original_weighted_trees.close();
-        reweighted_input_trees.close();
-        source_trees_for_this_search = "z_weighted_input_trees_reweighted";    
-      }else {
-        source_trees_for_this_search = argv[1];
+        for(int i = 0; i<number_of_source_trees; i++) {
+          string t = change_branch_lengths(weighted_source_trees[i], percentage_of_clades_to_be_reweighted, ratchet_weight);
+          //cout << t << endl;
+          re_weighted_source_trees[i] = t;
+        }         
       }
 
 
-
-
-      int the_best_wrf_distance_of_current_hill= INT_MAX;
+      int the_best_rf_distance_of_current_hill= INT_MAX;
       string the_best_supertree_of_current_hill;
 
       //search until reaching a local optimum
@@ -582,11 +608,11 @@ int main(int argc, char** argv) {
           iteration ++;
 
           //cout << "==========================" << init_supertree << endl;
-          Node* myTree= build_tree(init_supertree);
-          adjustTree(myTree);
+          Node* initial_st_root= build_tree(init_supertree);
+          adjustTree(initial_st_root);
 
           int total_nodes=0;
-          total_number_of_nodes(myTree, total_nodes);
+          total_number_of_nodes(initial_st_root, total_nodes);
 
 
           //write init_supertree into "z_spr_neighbours"
@@ -595,8 +621,12 @@ int main(int argc, char** argv) {
 
 
           //writes all valid spr_neighbors into the file "z_spr_neighbours"
-          //int number_of_neighbors= produce_all_spr_neighbors(myTree, total_nodes);
-          int number_of_neighbors= produce_n_percent_of_spr_neighbors(myTree, total_nodes, neighborhood_percentage);
+          int number_of_neighbors;
+          if (neighborhood_percentage == 100) {
+            number_of_neighbors= produce_all_spr_neighbors(initial_st_root, total_nodes);
+          } else {
+            number_of_neighbors= produce_n_percent_of_spr_neighbors(initial_st_root, total_nodes, neighborhood_percentage);
+          }
           //cout << "The number of neighbors in iteration " << iteration << " is: " << number_of_neighbors << endl;
 
 
@@ -613,72 +643,52 @@ int main(int argc, char** argv) {
           // "z_spr_neighbours" file.
           while (getline(supertrees, suptree)) {
 
-            //replace "suptree" with the ST at the beginning of the "z_wrf_input"
-                //This is done in 3 steps:
-                // 1- creating a new file, "z_wrf_input", in each iteration of the while-loop
-                // 2- adding the "suptree" string variable at the beginning of "z_wrf_input"
-                // 3- concatenating the source_trees' file to "z_wrf_input"
-
-            std::ofstream wrf_file;
-            wrf_file.open ("z_wrf_input");
-            string current_supertree= suptree+"\n";
-            wrf_file << current_supertree;
-
-            ifstream source_trees(source_trees_for_this_search);
-            wrf_file << source_trees.rdbuf();
-            source_trees.close();
-
-            wrf_file.close();
-
-
-            //the following line computes the wrf dist. of ST to source trees
-            int current_supertree_wrf_distance;
+            int current_supertree_rf_distance;
             if(ratchet) {
-              current_supertree_wrf_distance = calculate_total_wrf("z_wrf_input");
-              cout << "weightedrf: " << current_supertree_wrf_distance << endl;
+              current_supertree_rf_distance = calculate_total_rf(re_weighted_source_trees, non_shared_taxa_arr, *initial_st_root, ratchet);
+              //cout << "weighted_rf: " << current_supertree_rf_distance << endl;
             } else {
-              current_supertree_wrf_distance = calculate_total_rf("z_wrf_input");
-              cout << "rf: " <<current_supertree_wrf_distance << endl;
+              current_supertree_rf_distance = calculate_total_rf(source_trees, non_shared_taxa_arr, *initial_st_root, ratchet);
+              //cout << "rf: " <<current_supertree_rf_distance << endl;
             }    
             
-            ///cout << suptree << "  with score: " << current_supertree_wrf_distance << endl;
-            if(current_supertree_wrf_distance < best_distance_of_current_iter) {
-                best_distance_of_current_iter= current_supertree_wrf_distance;
+            ///cout << suptree << "  with score: " << current_supertree_rf_distance << endl;
+            if(current_supertree_rf_distance < best_distance_of_current_iter) {
+                best_distance_of_current_iter= current_supertree_rf_distance;
                 best_supertree_of_current_iter= suptree;
             }
           }//end of one local search
           supertrees.close();
 
 
-
-      cout << "****************************************************" << endl;
       cout << "The bets ST found at the end of " << iteration << "th iteration and among "<<
           number_of_neighbors << " spr-neighbors is" <<endl;
-      cout << best_supertree_of_current_iter << endl;
-      cout << "And its WRF distance is: " << best_distance_of_current_iter << endl;
-      cout << "****************************************************" << endl;
+      //cout << best_supertree_of_current_iter << endl;
+      cout << "And its RF distance is: " << best_distance_of_current_iter << endl;
+      //cout << "note the distance for last iter (which is the one after local opt), distance will be increases!"
+      cout << "-------------------------------------------------------------------" << endl;
 
       //init_supertree = best_supertree_of_current_iter;  //it's WRONG to be here.
-      /****************************
+      /*////////////////////////////////////
       NOTE:
       the above line, should be moved to inside of next if-statement CUZ when we reach a local opt,
       "best_supertree_of_current_iter" is not better than "init_supertree" at the beginning of this iteration,
       and we do not want to change "init_supertree". Note this does NOT matter for basi hill climbing, qsdt. 
       However, in ratchet, it DOES matter since the best supertree tree of each hill, will be fed as initial
       supertree of next hill climbing phase.
-      *****************************/
+      /////////////////////////////////*/
 
       //Is it local optimum? 
-      //update "the_best_wrf_distance_of_current_hill" if needed
-      if(best_distance_of_current_iter < the_best_wrf_distance_of_current_hill) {
+      //update "the_best_rf_distance_of_current_hill" if needed
+      if(best_distance_of_current_iter < the_best_rf_distance_of_current_hill) {
 
           init_supertree = best_supertree_of_current_iter;
 
-          the_best_wrf_distance_of_current_hill= best_distance_of_current_iter;
+          the_best_rf_distance_of_current_hill= best_distance_of_current_iter;
           the_best_supertree_of_current_hill= best_supertree_of_current_iter;
       }else { // local optimum
 
-          cout << "----------------------------------------------------------------------------------" << endl;
+          cout << "**********************************************************************************************" << endl;
           
           if(ratchet) {
               cout << "ratchet local opt (re-weighted) reached." << endl;
@@ -686,12 +696,12 @@ int main(int argc, char** argv) {
               cout << "regular local opt (original weights) reached. ###" << endl;
           }
 
-          cout << "We have reached a local optimum which has better \(or equal\) WRF distance than all its spr-neighbors\n";
+          //cout << "We have reached a local optimum which has better \(or equal\) WRF distance than all its spr-neighbors\n";
           cout << "The best SuperTree found after " << iteration << " number of iterations is: " << endl;
-          cout << "And its WRF distance is " << the_best_wrf_distance_of_current_hill << endl;
-          cout << "----------------------------------------------------------------------------------" << endl;
+          cout << "And its RF distance is " << the_best_rf_distance_of_current_hill << endl;
+          cout << "----------------------------------------------------------------------------------------------" << endl;
           cout << the_best_supertree_of_current_hill << endl;
-          cout << "----------------------------------------------------------------------------------" << endl;
+          cout << "**********************************************************************************************" << endl;
 
 
           
@@ -700,15 +710,15 @@ int main(int argc, char** argv) {
               cout << "=======================================end of " << ratchet_counter << "-th ratchet iter=========================================" << endl;
               cout << "========================================================================================================" << endl;
 
-              if(the_best_wrf_distance_of_current_hill < the_best_wrf_distance_seen){ //keep track of best supertree seen so far
-                  the_best_wrf_distance_seen= the_best_wrf_distance_of_current_hill;
+              if(the_best_rf_distance_of_current_hill < the_best_rf_distance_seen){ //keep track of best supertree seen so far
+                  the_best_rf_distance_seen= the_best_rf_distance_of_current_hill;
                   the_best_supertree_seen= the_best_supertree_of_current_hill;
               }                   
 
               break;  //end of second phase of ONE ratchet iteration
                              
           }else { //now perform a regular branch swapping
-              the_best_wrf_distance_of_current_hill= INT_MAX;   //this line so necessary!!
+              the_best_rf_distance_of_current_hill= INT_MAX;   //this line so necessary!!
                                                               //Because we are about to start a completely new hill climbing with new objective function.
                                                               //without this line, after 2nd ratchet iter, no improvement will be made since the weighted 
                                                               //distance is always larger than un-weighted and the init ST from previous step is local opt
@@ -734,12 +744,11 @@ int main(int argc, char** argv) {
 
   cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
   cout << "The best SuperTree found after " << number_of_ratchet_iterations << " number of ratchet iterations is: " << endl;    
-  cout << "And its RF distance is " << the_best_wrf_distance_seen << endl;
+  cout << "And its RF distance is " << the_best_rf_distance_seen << endl;
   cout << "the running time is: " << seconds << " sec." << endl;        
   cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
   cout << the_best_supertree_seen << endl;
   cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
-  cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$+" << endl;
 
   return 0;
 }
@@ -749,7 +758,7 @@ int main(int argc, char** argv) {
 
 //the following function was main() in original hashRF
 //i create fake argv for it in main
-double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
+double calculate_rf_btwn_ST_n_source_tree(int argc, char** argv)
 {
   double wrf_distance= 0.0;
 
@@ -1145,14 +1154,6 @@ double calculate_wrf_btwn_ST_n_source_tree(int argc, char** argv)
 }
 
 
-// eof
-
-
-
-
-
-
-
 
 //////////////////////////////////////REZA////////////////////////////////////>>>>>>>>>>>>>
 //////////////////////////////////////////////////////////////////////////////>>>>>>>>>>>>>
@@ -1210,148 +1211,63 @@ string change_branch_lengths(const string &tree, int percentage_to_be_reweighted
 
 //writes "s\n" into file "file_name"
 void write_line_to_File(string s,const char* file_name) {
-
     ofstream myFile;
     myFile.open(file_name, std::ios_base::app);
     myFile << s + ";\n";
     myFile.close();
-
 }
 
 
-//given ST and one source tree in input_file, writes "restricted" ST and source tree in file output_file
-//assumes ST and source tree are given in file "z_st_and_source_tree" and writes 'restricted' ST and source tree on "z_pruned_st_and_the_source_tree"
-//it is too hard wired, I know, but should be fine I need it just to work now :))
-void restrict_st_to_source_tree() {
-/*
-For now I am using my python script and terminall commands using system calls, but in the future 
-you can implemet it like:
-1- read first and second line of the input tree file (i.e. ST and one of source trees)
-2- call your function to find non-shared taxa
-3- traverse the ST tree data structure, you can use GetTaxaLabels(), to remove uncommon taxa AND removing nodes with 1 child
-4- copy this new (restricted) ST and source trees into a file which will be fed to the nexat call of loadnewicktree2()
-*/
-
-
-	//the python program, "prune_tree.py", takes file "z_st_and_source_tree" containing ST and one source tree,
-	// and prunes ST to taxa set of source tree, AND adds branch lengths 1 to all edges in newick format, AND
-	//writes them into file "z_pruned_st_and_the_source_tree".
-	std::string command1 = "python prune_tree.py z_st_and_source_tree";
-	system(command1.c_str());
-	//there are some unnecessary branch lengths which should be removed:
-	//1- the branch lengths for interlan edges are like "..(t1,t2)1:1". Idk what is the first "1" for. I remove it.
-	string command2 = "perl -pe 's/(?<=\\))1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
-	system(command2.c_str());
-	//2- having branch length for leaves in this context, i.e. weighted RF distance is unnecessary.
-	//thus, anything in newick format which is of the form "(some_taxon:1,...." should be removed. We keep only
-	//branch lengths after afer closing parenthesis.
-	string command3 = "perl -pe 's/(?<=[a-zA-Z0-9]):1//g' z_pruned_st_and_the_source_tree > z_temp; cat z_temp> z_pruned_st_and_the_source_tree; rm z_temp";
-  system(command3.c_str());
-}
-
-
-//assumes "input_file" contains ST (FIRST line) and all source trees
-double calculate_total_wrf(const char* input_file){
+//note source_trees may contain weighted or unweghted trees
+double calculate_total_rf(string source_trees[], set<string> non_shared_taxa_arr[], Node& supertree, bool is_weighted){
   
   double total_wrf_dist = 0.0;
 
-  //fake argv and argc to be passed to calculate_wrf_btwn_ST_n_source_tree()
+  //fake argv and argc to be passed to calculate_rf_btwn_ST_n_source_tree()
   //note here is how hashrf is called when we have exactly two tree: "hashrf z_pruned_st_and_the_source_tree 2 -w"
   //Thus:
-  int fake_argc = 4;
+  int fake_argc;
   char* fake_argv[4];
   fake_argv[0] = "hashrf";
   fake_argv[1] = "z_pruned_st_and_the_source_tree";
   fake_argv[2] = "2";
-  fake_argv[3] = "-w";
-
-  string supertree;  
-  string tree;
-  int counter = 1;
-  ifstream input;
-  input.open (input_file);
-  while (getline(input, tree)) {
-    if(counter == 1) {  //ST is first tree
-      supertree = tree+"\n";   
-      counter++;
-    }else {
-      string current_tree= tree+"\n";
-      ofstream temp_file;
-      temp_file.open ("z_st_and_source_tree");
-      temp_file << supertree;
-      temp_file << current_tree;
-      temp_file.close();
-      
-      //assumes ST and source tree are given in file "z_st_and_source_tree" and writes
-      //'restricted' ST and source tree on "z_pruned_st_and_the_source_tree"
-      restrict_st_to_source_tree();
-
-      double dist= calculate_wrf_btwn_ST_n_source_tree(fake_argc, fake_argv);
-      //cout << dist << endl;
-      total_wrf_dist += dist;
-
-    }  
+  if (is_weighted) {
+    fake_argc = 4;
+    fake_argv[3] = "-w";
+  } else {
+    fake_argc = 3;
   }
-  input.close();
+  
+  for(int i=0; i<::NUMBER_OF_SOURCE_TREES_ZZ; i++) {
+    Node temp = Node(supertree);
+    restrict_supertree(temp, non_shared_taxa_arr[i]);
+    //adjustTree(temp);
+
+    string suptree = temp.str_subtree() + ";";
+    if(is_weighted) {
+      suptree = ReplaceAll(suptree, string(")"), string("):1"));  //add weight 1 to all internal edges
+      suptree = ReplaceAll(suptree, string(":1;"), string(";"));  //remove last weight
+    } 
+
+    ofstream temp_file;
+    temp_file.open ("z_pruned_st_and_the_source_tree");
+    temp_file << suptree;
+    temp_file << "\n";
+    temp_file << source_trees[i];
+    temp_file.close();    
+
+    double dist= calculate_rf_btwn_ST_n_source_tree(fake_argc, fake_argv);
+    //cout << "*****************************************" << endl;
+    //cout << supertree.str_subtree() << endl;    
+    //cout << suptree << endl;
+    //cout << source_trees[i] << endl;
+    //cout << dist << endl;
+    total_wrf_dist += dist;
+  }
 
   return total_wrf_dist;
 
 }
-
-//assumes "input_file" contains ST (FIRST line) and all source trees
-//SAME FUNCTION AS calculate_total_wrf(), BAD SMELL :||
-double calculate_total_rf(const char* input_file){
-  
-  double total_rf_dist = 0.0;
-
-  //fake argv and argc to be passed to calculate_wrf_btwn_ST_n_source_tree()
-  //note here is how hashrf is called when we have exactly two tree: "hashrf z_pruned_st_and_the_source_tree 2 -w"
-  //Thus:
-  int fake_argc = 3;
-  char* fake_argv[3];
-  fake_argv[0] = "hashrf";
-  fake_argv[1] = "z_pruned_st_and_the_source_tree";
-  fake_argv[2] = "2";
-
-  string supertree;  
-  string tree;
-  int counter = 1;
-  ifstream input;
-  input.open (input_file);
-  while (getline(input, tree)) {
-    if(counter == 1) {  //ST is first tree
-      supertree = tree+"\n";   
-      counter++;
-    }else {
-      string current_tree= tree+"\n";
-      ofstream temp_file;
-      temp_file.open ("z_st_and_source_tree");
-      temp_file << supertree;
-      temp_file << current_tree;
-      temp_file.close();
-      
-      //assumes ST and source tree are given in file "z_st_and_source_tree" and writes
-      //'restricted' ST and source tree on "z_pruned_st_and_the_source_tree"
-      restrict_st_to_source_tree();
-
-      double dist= calculate_wrf_btwn_ST_n_source_tree(fake_argc, fake_argv);
-      //cout << dist << endl;
-      total_rf_dist += dist;
-
-    }  
-  }
-  input.close();
-
-  return total_rf_dist;
-
-}
-
-
-
-
-
-
-
 
 //*******************added for SPR neighborhood*********************
 //******************************************************************
@@ -1613,6 +1529,108 @@ void total_number_of_nodes(Node* node, int& total_nodes) {
     for(c = children.begin(); c != children.end(); c++) {
         total_number_of_nodes(*c, total_nodes);
     }
+}
+
+
+/////////////////////////////Added for restrict_st()/////////////////////////
+//for each "taxon" in "non_shared_taxon_set", traverse the tree and find leaf whose name is "taxon", remove it.
+//if parent is left with one child, then contract parent.
+void restrict_supertree(Node& supertree, set<string>& non_shared_taxon_set){  
+  Node* n;  //this willl be the node whose "name" is "taxon"
+  Node* p;  //this will be the parent of "n"
+
+  for(auto taxon : non_shared_taxon_set) {
+    //cout << "in search of: " << taxon << endl;
+    int prenum_node_to_be_removed;
+    find_prenum_of_node_to_be_removed(supertree, taxon, prenum_node_to_be_removed);
+    //cout << prenum_node_to_be_removed << endl;
+    n = supertree.find_by_prenum(prenum_node_to_be_removed);
+    //cout << n->get_name() << endl;
+    p = n->get_p();
+    //cout << "parent before deletion---------" << p->str_subtree() << endl;
+    p -> delete_child(n);
+    //cout << "parent after delete_child()----" << p->str_subtree() << endl;
+    if(p -> get_children().size() == 1) {
+      Node* pp = p->get_p();
+      //cout << "grand-pa before contrac--------" << pp -> str_subtree() << endl;
+      p -> contract_node();
+      //cout << "grand-pa after contract_node()-" << pp -> str_subtree() << endl;
+    }
+  } 
+}
+
+void find_prenum_of_node_to_be_removed(Node& root, string taxon, int& prenum_of_node){
+  if (root.is_leaf()) {
+    if (root.get_name() == taxon){
+      prenum_of_node = root.get_preorder_number();
+      //cout << prenum_of_node << endl;
+    }
+  }else {
+    for (auto child : root.get_children()) {
+      find_prenum_of_node_to_be_removed(*child, taxon, prenum_of_node);
+    }
+  }
+} 
+
+
+set<string> find_non_common_taxa_set(const string &supertree, const string &source_tree){
+  set<string> supertree_taxon_set;
+  set<string> source_tree_taxon_set;
+  set<string> non_shared_taxon_set;
+ 
+  //get taxon set of source tree
+  regex reg("[^\\w]+");
+  string temp1 = regex_replace(source_tree, reg, " ");  //replacing all parenthesis, comma, and semi-colon with white space
+  temp1 = regex_replace(temp1, regex("^ +| +$|( ) +"), "$1"); //removing leading, trailing and extra spaces
+  vector<string> source_tree_taxon_vector= split(temp1, ' ');
+  for(auto i : source_tree_taxon_vector) {
+      source_tree_taxon_set.insert(i);
+  }
+
+
+  //get taxon set of supertree
+  string temp2 = regex_replace(supertree, reg, " ");  //replacing all parenthesis, comma, and semi-colon with white space
+  temp2 = regex_replace(temp2, regex("^ +| +$|( ) +"), "$1"); //removing leading, trailing and extra spaces
+  vector<string> supertree_taxon_vector= split(temp2, ' ');
+  for(auto i : supertree_taxon_vector) {
+      supertree_taxon_set.insert(i);
+  }
+
+  //find set difference
+  set_difference( supertree_taxon_set.begin(), supertree_taxon_set.end(), source_tree_taxon_set.begin(), source_tree_taxon_set.end(), inserter(non_shared_taxon_set, non_shared_taxon_set.begin()));
+
+  //for symmetric difference you can use the following
+  //set_symmetric_difference( supertree_taxon_set.begin(), supertree_taxon_set.end(), source_tree_taxon_set.begin(), source_tree_taxon_set.end(), inserter(non_shared_taxon_set, non_shared_taxon_set.begin()));
+
+  return non_shared_taxon_set;
+}
+
+
+
+void split(const string &s, char delim, vector<string> &elems) {
+    stringstream ss;
+    ss.str(s);
+    string item;
+    while (getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+}
+
+
+vector<string> split(const string &s, char delim) {
+    vector<string> elems;
+    split(s, delim, elems);
+    return elems;
+}
+
+
+std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
 }
 
 
