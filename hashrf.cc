@@ -58,7 +58,7 @@ set<string> find_non_common_taxa_set(const string &supertree, const string &sour
 string change_branch_lengths(const string &tree, int percentage_to_be_reweighted, int new_weight);
 void write_line_to_File(string s,const char* file_name);
 double calculate_rf_btwn_ST_n_source_tree(int argc, char** argv);
-double calculate_total_rf(string source_trees[], set<string> non_shared_taxa[], Node& supertree, bool is_weighted);
+double calculate_total_rf(string source_trees[], set<string> non_shared_taxa[], string supertree, bool is_weighted);
 
 
 
@@ -629,6 +629,8 @@ int main(int argc, char** argv) {
           }
           //cout << "The number of neighbors in iteration " << iteration << " is: " << number_of_neighbors << endl;
 
+          //prevent memory leak
+          initial_st_root ->delete_tree();
 
           int best_distance_of_current_iter= INT_MAX;
           string best_supertree_of_current_iter;
@@ -645,13 +647,13 @@ int main(int argc, char** argv) {
 
             int current_supertree_rf_distance;
             if(ratchet) {
-              current_supertree_rf_distance = calculate_total_rf(re_weighted_source_trees, non_shared_taxa_arr, *initial_st_root, ratchet);
+              current_supertree_rf_distance = calculate_total_rf(re_weighted_source_trees, non_shared_taxa_arr, suptree, ratchet);
               //cout << "weighted_rf: " << current_supertree_rf_distance << endl;
             } else {
-              current_supertree_rf_distance = calculate_total_rf(source_trees, non_shared_taxa_arr, *initial_st_root, ratchet);
+              current_supertree_rf_distance = calculate_total_rf(source_trees, non_shared_taxa_arr, suptree, ratchet);
               //cout << "rf: " <<current_supertree_rf_distance << endl;
-            }    
-            
+            }
+
             ///cout << suptree << "  with score: " << current_supertree_rf_distance << endl;
             if(current_supertree_rf_distance < best_distance_of_current_iter) {
                 best_distance_of_current_iter= current_supertree_rf_distance;
@@ -662,7 +664,7 @@ int main(int argc, char** argv) {
 
 
       cout << "The bets ST found at the end of " << iteration << "th iteration and among "<<
-          number_of_neighbors << " spr-neighbors is" <<endl;
+          number_of_neighbors << " spr-neighbors." <<endl;
       //cout << best_supertree_of_current_iter << endl;
       cout << "And its RF distance is: " << best_distance_of_current_iter << endl;
       //cout << "note the distance for last iter (which is the one after local opt), distance will be increases!"
@@ -1219,7 +1221,7 @@ void write_line_to_File(string s,const char* file_name) {
 
 
 //note source_trees may contain weighted or unweghted trees
-double calculate_total_rf(string source_trees[], set<string> non_shared_taxa_arr[], Node& supertree, bool is_weighted){
+double calculate_total_rf(string source_trees[], set<string> non_shared_taxa_arr[], string supertree, bool is_weighted){
   
   double total_wrf_dist = 0.0;
 
@@ -1239,11 +1241,15 @@ double calculate_total_rf(string source_trees[], set<string> non_shared_taxa_arr
   }
   
   for(int i=0; i<::NUMBER_OF_SOURCE_TREES_ZZ; i++) {
-    Node temp = Node(supertree);
-    restrict_supertree(temp, non_shared_taxa_arr[i]);
-    //adjustTree(temp);
+    Node* temp = build_tree(supertree);
+    adjustTree(temp);
+    restrict_supertree(*temp, non_shared_taxa_arr[i]);
 
-    string suptree = temp.str_subtree() + ";";
+    string suptree = temp->str_subtree() + ";";
+
+    //prevent memory leak
+    temp->delete_tree();
+
     if(is_weighted) {
       suptree = ReplaceAll(suptree, string(")"), string("):1"));  //add weight 1 to all internal edges
       suptree = ReplaceAll(suptree, string(":1;"), string(";"));  //remove last weight
@@ -1549,6 +1555,7 @@ void restrict_supertree(Node& supertree, set<string>& non_shared_taxon_set){
     p = n->get_p();
     //cout << "parent before deletion---------" << p->str_subtree() << endl;
     p -> delete_child(n);
+    delete n;
     //cout << "parent after delete_child()----" << p->str_subtree() << endl;
     if(p -> get_children().size() == 1) {
       Node* pp = p->get_p();

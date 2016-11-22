@@ -27,7 +27,6 @@ uname -v = #62~14.04.1-Ubuntu SMP Fri Oct 7 23:15:48 UTC 2016
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
 
-PATH: /home/reza/anaconda_ete/bin/
 PATH: /usr/local/heroku/bin
 PATH: /home/reza/.rvm/gems/ruby-2.3.0/bin
 PATH: /home/reza/.rvm/gems/ruby-2.3.0@global/bin
@@ -62,35 +61,35 @@ configure:2407: result: gawk
 configure:2418: checking whether make sets $(MAKE)
 configure:2440: result: yes
 configure:2684: checking for g++
-configure:2700: found /home/reza/anaconda_ete/bin//g++
+configure:2700: found /usr/bin/g++
 configure:2711: result: g++
 configure:2738: checking for C++ compiler version
 configure:2747: g++ --version >&5
-g++ (GCC) 4.8.5
+g++ (Ubuntu 4.9.4-2ubuntu1~14.04.1) 4.9.4
 Copyright (C) 2015 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 configure:2758: $? = 0
 configure:2747: g++ -v >&5
-Reading specs from /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/specs
+Using built-in specs.
 COLLECT_GCC=g++
-COLLECT_LTO_WRAPPER=/home/reza/anaconda_ete/gcc/libexec/gcc/x86_64-unknown-linux-gnu/4.8.5/lto-wrapper
-Target: x86_64-unknown-linux-gnu
-Configured with: ./configure --prefix=/home/reza/anaconda_ete/gcc --with-gxx-include-dir=/home/reza/anaconda_ete/gcc/include/c++ --bindir=/home/reza/anaconda_ete/bin --datarootdir=/home/reza/anaconda_ete/share --libdir=/home/reza/anaconda_ete/lib --with-gmp=/home/reza/anaconda_ete --with-mpfr=/home/reza/anaconda_ete --with-mpc=/home/reza/anaconda_ete --with-isl=/home/reza/anaconda_ete --with-cloog=/home/reza/anaconda_ete --enable-checking=release --with-tune=generic --disable-multilib
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.9/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.9.4-2ubuntu1~14.04.1' --with-bugurl=file:///usr/share/doc/gcc-4.9/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.9 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.9 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-4.9-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-4.9-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-4.9-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
 Thread model: posix
-gcc version 4.8.5 (GCC) 
+gcc version 4.9.4 (Ubuntu 4.9.4-2ubuntu1~14.04.1) 
 configure:2758: $? = 0
 configure:2747: g++ -V >&5
 g++: error: unrecognized command line option '-V'
 g++: fatal error: no input files
 compilation terminated.
-configure:2758: $? = 1
+configure:2758: $? = 4
 configure:2747: g++ -qversion >&5
 g++: error: unrecognized command line option '-qversion'
 g++: fatal error: no input files
 compilation terminated.
-configure:2758: $? = 1
+configure:2758: $? = 4
 configure:2778: checking whether the C++ compiler works
 configure:2800: g++    conftest.cpp  >&5
 configure:2804: $? = 0
@@ -124,35 +123,35 @@ configure:3172: result: GNU
 configure:3197: checking dependency style of g++
 configure:3288: result: gcc3
 configure:3357: checking for gcc
-configure:3373: found /home/reza/anaconda_ete/bin//gcc
+configure:3373: found /usr/bin/gcc
 configure:3384: result: gcc
 configure:3613: checking for C compiler version
 configure:3622: gcc --version >&5
-gcc (GCC) 4.8.5
+gcc (Ubuntu 4.9.4-2ubuntu1~14.04.1) 4.9.4
 Copyright (C) 2015 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 configure:3633: $? = 0
 configure:3622: gcc -v >&5
-Reading specs from /home/reza/anaconda_ete/lib/gcc/x86_64-unknown-linux-gnu/4.8.5/specs
+Using built-in specs.
 COLLECT_GCC=gcc
-COLLECT_LTO_WRAPPER=/home/reza/anaconda_ete/gcc/libexec/gcc/x86_64-unknown-linux-gnu/4.8.5/lto-wrapper
-Target: x86_64-unknown-linux-gnu
-Configured with: ./configure --prefix=/home/reza/anaconda_ete/gcc --with-gxx-include-dir=/home/reza/anaconda_ete/gcc/include/c++ --bindir=/home/reza/anaconda_ete/bin --datarootdir=/home/reza/anaconda_ete/share --libdir=/home/reza/anaconda_ete/lib --with-gmp=/home/reza/anaconda_ete --with-mpfr=/home/reza/anaconda_ete --with-mpc=/home/reza/anaconda_ete --with-isl=/home/reza/anaconda_ete --with-cloog=/home/reza/anaconda_ete --enable-checking=release --with-tune=generic --disable-multilib
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.9/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.9.4-2ubuntu1~14.04.1' --with-bugurl=file:///usr/share/doc/gcc-4.9/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.9 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.9 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-4.9-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-4.9-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-4.9-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
 Thread model: posix
-gcc version 4.8.5 (GCC) 
+gcc version 4.9.4 (Ubuntu 4.9.4-2ubuntu1~14.04.1) 
 configure:3633: $? = 0
 configure:3622: gcc -V >&5
 gcc: error: unrecognized command line option '-V'
 gcc: fatal error: no input files
 compilation terminated.
-configure:3633: $? = 1
+configure:3633: $? = 4
 configure:3622: gcc -qversion >&5
 gcc: error: unrecognized command line option '-qversion'
 gcc: fatal error: no input files
 compilation terminated.
-configure:3633: $? = 1
+configure:3633: $? = 4
 configure:3637: checking whether we are using the GNU C compiler
 configure:3656: gcc -c   conftest.c >&5
 configure:3656: $? = 0
@@ -346,7 +345,7 @@ configure:4557: checking for ANSI C header files
 configure:4661: result: yes
 configure:4671: checking for strcpy
 configure:4671: gcc -o conftest -g -O2   conftest.c  >&5
-conftest.c:46:6: warning: conflicting types for built-in function 'strcpy' [enabled by default]
+conftest.c:46:6: warning: conflicting types for built-in function 'strcpy'
  char strcpy ();
       ^
 configure:4671: $? = 0
