@@ -37,10 +37,40 @@ The weighted RF distance is the sum of the differences between corresponding bra
 **********************************************************************
 **********************************************************************
 
+Usage:
+$./find_RF_and_Q_distances_heterogenous <file>
+
+where <file> contains supertree AND source trees. Note ST should be at the first line.
 
 
+It calls the little python program prune_tree.py which gets two trees and prune them into their common leaf set.
+Note if you get "ImportError No module named", then you need to do either of:
+export PATH=/home/reza/anaconda_ete/bin/:$PATH; export PYTHONPATH=/home/reza/anaconda_ete/bin/:$PYTHONPATH
 
 
+--------------------------------------------------------
+-----------Extracting Numbers From Output---------------
+--------------------------------------------------------
+You can use the following commands to get the sum of RF and quartet distances, respectively:
+
+./find_RF_and_Q_distance_heterogenous source_trees | awk '/^0/ {print $2}' | paste -s -d+ | bc
+./find_RF_and_Q_distance_heterogenous source_trees | awk '/input_of_hashrf\(1\)/ {print $4}' | paste -s -d+ | bc
+
+
+**********************************************************************
+**********************************************************************
+
+Installation tips:
+
+Dont forget to change Makefile:
+1- "g++" should be "g++-4.9" or higher (for error regex_replace() is not a function or sth error)
+2- add to CXXFLAGS the "-std=c++11" for things you use from c++11
+
+If you get seg fault with "LableMap()" sth it is because the supertree does NOT contain all the taxa from source trees, this sometimes happensm like in MRP :| idk why.
+
+
+**********************************************************************
+**********************************************************************
 
 
 
